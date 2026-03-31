@@ -223,6 +223,19 @@ git commit 실행 시 자동으로:
 * 처음 clone 후 `npm install` 실행 시 Husky 자동 설치
 * 자동 검사는 코드 품질 유지를 위한 필수 과정
 
+## 트러블슈팅 (Troubleshooting)
+
+프로젝트 진행 중 자주 발생하는 에러와 해결책을 기록합니다.
+
+### 커밋 시 Husky (ESLint/Prettier) 에러 발생
+
+* **문제**: `git commit` 실행 중 패키지 누락이나 린트 설정 문제로 인해 Husky가 커밋을 차단하고 터미널에 에러 로그(`Oops! Something went wrong!`)를 출력하는 경우
+* **해결 (Vibe Coding 워크플로우)**:
+  1. 터미널에 출력된 **에러 로그 전체를 복사**합니다.
+  2. 사용 중인 AI 도구(**Gemini 3.1 Pro** 등)에 복사한 로그를 붙여넣고 원인과 해결 방법을 질문합니다.
+  3. AI가 안내해 주는 누락된 패키지 설치 명령어(예: `npm install -D eslint-plugin-react`)를 실행하거나 설정 파일을 수정합니다.
+  4. 변경 사항을 반영하여 `git add .` 후 다시 `git commit`을 시도합니다.
+
 ## 연관 레포지토리
 
 * Back-end 레포지토리: [https://github.com/SM-Four-Idiots/SM-TOEIC-BE](https://github.com/SM-Four-Idiots/SM-TOEIC-BE)
