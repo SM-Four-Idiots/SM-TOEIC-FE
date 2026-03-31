@@ -1,0 +1,26 @@
+/* import 순서는 폰트 -> tailwind class 순서로 해야 컴파일에서 안꼬임 */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+@import "tailwindcss";
+
+/* 테마 설정 */
+@theme {
+    /* 폰트 */
+    --font-sans: "Pretendard", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* 베이스 스타일 설정 */
+@layer base {
+    /* RESET */
+    * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+    *:focus {
+        outline: none;
+    }
+
+    body {
+        @apply font-sans bg-white min-h-screen tracking-wide *:min-h-screen;
+    }
+}
