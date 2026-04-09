@@ -32,29 +32,114 @@
 
 ### 사전 요구사항
 
-* Node.js 18 이상 권장
-* npm 설치 및 실행
+* Docker Desktop 설치 (Node.js 설치 불필요)
 
-### 실행 방법
+## 빠른 시작
+
+### 사전 요구사항
+
+* Docker Desktop 설치 (Node.js 설치 불필요)
+
+### 1. Docker Desktop 설치
+
+Docker Desktop은 컨테이너 실행 환경입니다. 설치하면 DB, 서버 등을 명령어 한 줄로 실행할 수 있습니다.
+
+**Windows**
+1. [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop) 접속
+2. `Download for Windows` 클릭 후 설치
+3. 설치 완료 후 Docker Desktop 실행 (고래 아이콘이 트레이에 뜨면 정상)
+4. 터미널(PowerShell 또는 CMD)에서 확인
+```bash
+   docker -v
+```
+
+**macOS**
+1. 동일한 링크에서 `Download for Mac` 클릭 후 설치
+2. 설치 완료 후 Docker Desktop 실행 (상단 메뉴바에 고래 아이콘이 뜨면 정상)
+3. 터미널에서 확인
+```bash
+   docker -v
+```
+
+> Docker Desktop이 실행 중인 상태에서만 docker 명령어가 동작합니다.
+> 개발할 때는 항상 Docker Desktop을 먼저 켜두세요.
+
+### 2. 두 레포 클론
+
+SM-TOEIC-BE와 SM-TOEIC-FE는 **반드시 같은 폴더 안에 나란히** 위치해야 합니다.
 
 ```bash
-# 의존성 설치
-npm install
+# 원하는 폴더로 이동 후
+git clone https://github.com/SM-Four-Idiots/SM-TOEIC-BE.git
+git clone https://github.com/SM-Four-Idiots/SM-TOEIC-FE.git
+```
 
-# 개발 서버 실행 (http://localhost:5173)
-npm run dev
+클론 후 구조:
 
-# TypeScript 타입 체크 + 프로덕션 빌드
-npm run build
+아무 폴더명/
+├── SM-TOEIC-BE/
+└── SM-TOEIC-FE/
 
-# ESLint로 코드 검사
-npm run lint
+### 3. 백엔드 빌드
 
-# 프로덕션 빌드 미리보기
-npm run preview
+Docker 실행 전에 반드시 백엔드 빌드가 먼저 되어야 합니다.
 
-# Husky 설정 (자동 실행됨)
-npm run prepare
+```bash
+cd SM-TOEIC-BE
+
+# application.yaml 설정
+cp src/main/resources/application-example.yaml src/main/resources/application.yaml
+
+# Windows
+gradlew build -x test
+
+# macOS / Linux
+./gradlew build -x test
+```
+
+`BUILD SUCCESSFUL` 메시지가 뜨면 완료입니다.
+
+### 4. 전체 환경 실행
+
+SM-TOEIC-FE 또는 SM-TOEIC-BE 어느 쪽에서 실행해도 동일하게 동작합니다.
+
+```bash
+docker compose up -d
+```
+
+처음 실행 시 이미지를 다운로드하므로 수 분 정도 소요될 수 있습니다.
+
+실행 확인:
+```bash
+docker compose ps
+```
+
+아래처럼 3개가 모두 `running` 상태면 정상입니다.
+
+NAME        STATUS
+backend     running
+db          running
+frontend    running
+
+브라우저에서 확인:
+* 프론트엔드: http://localhost:3000
+* 백엔드 API: http://localhost:8080
+* Swagger UI: http://localhost:8080/swagger-ui.html
+
+### 5. 종료
+
+```bash
+docker compose down
+```
+
+### 자주 쓰는 명령어
+
+```bash
+docker compose up -d         # 백그라운드로 실행
+docker compose down          # 종료
+docker compose ps            # 실행 중인 컨테이너 목록
+docker compose logs frontend # 프론트 로그 확인
+docker compose logs backend  # 백엔드 로그 확인
 ```
 
 ## 개발 환경 설정
