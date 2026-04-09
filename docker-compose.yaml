@@ -1,13 +1,15 @@
 services:
   backend:
-    build: ./SM-TOEIC-BE
+    build:
+      context: ../SM-TOEIC-BE
+      dockerfile:  ../SM-TOEIC-BE/Dockerfile
     container_name: backend
     ports:
       - "8080:8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/vocadb
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=admin
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
     depends_on:
       - db
 
@@ -16,10 +18,10 @@ services:
     container_name: db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: vocadb
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       TZ: Asia/Seoul
     ports:
       - "3307:3306"
@@ -34,8 +36,7 @@ services:
     # 작업 기준 경로 설정
     working_dir: /app
     volumes:
-      - ./SM-TOEIC-FE:/app
-    # 로컬의 SM-TOEIC-FE 폴더를 컨테이너 안 /app에 마운트
+      - .:/app
       - /app/node_modules
     # 컨테이너 시작 시 npm install로 패키지 설치 후 npm run dev로 Vite 개발 서버를 실행
     command: sh -c "npm install && npm run dev"
