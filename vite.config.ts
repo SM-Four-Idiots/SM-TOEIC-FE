@@ -43,6 +43,10 @@ export default defineConfig(({ mode }) => {
             host : true, // 외부에서 접근 가능하도록 설정 (Docker 컨테이너 내부에서)
             proxy: {
                 // 프록시 설정 있으면 작성해주세요.
+                '/api': {
+                    target: env.VITE_API_URL,
+                    changeOrigin: true,
+                
             },
         },
     };
