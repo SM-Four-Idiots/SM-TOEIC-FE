@@ -34,7 +34,7 @@ export const ProtectedAdminRoute = ({
         return <Navigate to="/login" replace state={{ from: location }} />;
     }
     // Bossisme가 아니면 메인 페이지로 이동
-    if (user?.sno !== "Admin") {
+    if (user?.id !== "Admin") {
         return <Navigate to="/" replace />;
     }
 

@@ -6,7 +6,7 @@ function App() {
         <div className="min-h-screen bg-[#FCFAF6]">
             <Header />
             {/* children element */}
-            <main className="flex flex-col">
+            <main className="flex flex-col h-[90vh]">
                 <Outlet />
             </main>
         </div>

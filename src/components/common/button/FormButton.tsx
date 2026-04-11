@@ -17,7 +17,7 @@ type ButtonVariant = "main" | "outline" | "soft";
 
 // 버튼 Props 타입 정의
 interface FormButtonProps {
-    text: string;
+    text: React.ReactNode;
     variant?: ButtonVariant;
     isLoading?: boolean;
     type?: "button" | "submit" | "reset";
@@ -42,8 +42,7 @@ export default function FormButton({
 }: FormButtonProps) {
     // 공통 스타일 정의
     const commonStyle =
-        "text-center w-full py-2 rounded-[10px] transition-all duration-150 ease-out hover:brightness-75 active:scale-[0.98]";
-
+        "flex justify-center items-center w-full py-2 rounded-[10px] transition-all duration-150 ease-out hover:brightness-75 active:scale-[0.98]";
     return (
         <button
             type={type}
@@ -51,7 +50,7 @@ export default function FormButton({
             disabled={isLoading}
             className={`${commonStyle} ${variantStyles[variant]} ${isLoading ? "brightness-75 cursor-not-allowed" : ""} ${className ?? ""}`}
         >
-            <span className="btn-main font-medium">
+            <span className="flex items-center gap-1.5 font-medium">
                 {isLoading ? "로딩 중..." : text}
             </span>
         </button>

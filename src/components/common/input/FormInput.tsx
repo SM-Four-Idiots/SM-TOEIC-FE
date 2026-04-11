@@ -25,7 +25,10 @@ const _Input = (
     return (
         <div className="flex flex-col">
             {label && !isPlaceholder && (
-                <label htmlFor={name} className="flex btn-sub mb-[3px]">
+                <label
+                    htmlFor={name}
+                    className="text-sm font-bold text-[#1A1A1A] mb-1.5"
+                >
                     {label}
                 </label>
             )}
@@ -35,10 +38,15 @@ const _Input = (
                 name={name}
                 placeholder={isPlaceholder ? label : rest.placeholder}
                 {...rest}
-                className={`h-[35px] ring-1 rounded-[10px] body-t7 px-[15px] bg-white read-only:bg-background-200 transition-colors ${error ? "ring-accent focus:ring-accent" : "focus:ring-secondary ring-background-200"} ${className || ""} `}
+                className={`w-full h-11 px-4 rounded-[10px] bg-white border outline-none transition-all duration-200 text-sm text-[#1A1A1A] placeholder:text-[#8C8C8C] disabled:bg-[#F5F5F5] disabled:text-[#8C8C8C] disabled:cursor-not-allowed
+                ${
+                    error
+                        ? "border-red-500 focus:border-red-500 focus:ring-1 focus:ring-red-500" // 에러 발생 시 빨간색 강조
+                        : "border-[#EAEAEA] hover:border-[#D67629]/50 focus:border-[#D67629] focus:ring-1 focus:ring-[#D67629]" // 평상시 연한 테두리, 포커스 시 메인 오렌지 색상
+                } ${className || ""}`}
             />
             {error && (
-                <span className="flex flex-col body-t5 text-accent mt-[5px]">
+                <span className="text-sm font-medium text-red-500 mt-1.5">
                     {error}
                 </span>
             )}
