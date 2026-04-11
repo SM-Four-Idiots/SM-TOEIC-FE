@@ -19,7 +19,7 @@ type ButtonVariant = "main" | "outline" | "soft";
 
 // 버튼 Props 타입 정의
 interface LinkButtonProps {
-    text: string;
+    text: React.ReactNode;
     url: string;
     variant?: ButtonVariant;
     className?: string;
@@ -40,14 +40,16 @@ export default function LinkButton({
 }: LinkButtonProps) {
     // 공통 스타일 정의
     const commonStyle =
-        "block text-center w-full py-2 rounded-[10px] transition-all duration-150 ease-out hover:brightness-75 active:scale-[0.98]";
+        "flex justify-center items-center w-full py-2 rounded-[10px] transition-all duration-150 ease-out hover:brightness-75 active:scale-[0.98]";
 
     return (
         <Link
             to={url}
             className={`${commonStyle} ${variantStyles[variant]} ${className ?? ""}`}
         >
-            <span className="btn-main font-medium">{text}</span>
+            <span className="flex items-center gap-1.5 font-medium">
+                {text}
+            </span>
         </Link>
     );
 }
