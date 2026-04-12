@@ -1,0 +1,53 @@
+services:
+  backend:
+    build:
+      context: ../SM-TOEIC-BE
+      dockerfile:  ../SM-TOEIC-BE/Dockerfile
+    container_name: backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/vocadb
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Asia/Seoul
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  frontend:
+    # 도커 허브에서 Node.js 20 버전의 Alpine 이미지를 가져옴
+    image: node:20-alpine
+    # 컨테이너 이름
+    container_name: frontend
+    # 작업 기준 경로 설정
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    # 컨테이너 시작 시 npm install로 패키지 설치 후 npm run dev로 Vite 개발 서버를 실행
+    command: sh -c "npm install && npm run dev"
+    # 포트설정: 호스트의 3000 포트를 컨테이너의 3000 포트로 매핑
+    ports:
+      - "3000:3000"
+    # 프론트에서 백엔드 API 호출할 때 사용할 주소를 환경변수로 주입
+    # VITE_API_URL은 Vite에서 사용할 수 있는 환경변수
+    # 프론트엔드 코드에서 import.meta.env.VITE_API_URL로 접근할 수 있음
+    environment:
+      - VITE_API_URL=http://localhost:8080
+
+volumes:
+  mysql_data: {}

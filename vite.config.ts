@@ -39,8 +39,14 @@ export default defineConfig(({ mode }) => {
         },
         // 로컬 개발 서버 설정
         server: {
+            port: 3000, // docker-compose.yaml에서 설정한 포트와 일치시킵니다.
+            host: true, // 외부에서 접근 가능하도록 설정 (Docker 컨테이너 내부에서)
             proxy: {
                 // 프록시 설정 있으면 작성해주세요.
+                "/api": {
+                    target: env.VITE_API_URL,
+                    changeOrigin: true,
+                },
             },
         },
     };
