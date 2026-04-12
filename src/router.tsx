@@ -22,10 +22,10 @@ import App from "./App";
 import { ProtectedRoute } from "./components/route/ProtectedRoute";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
 import MyPage from "./pages/MyPage";
 import { ProtectedAdminRoute } from "./components/route/ProtectedAdminRoute";
 import AdminHome from "./pages/AdminHome";
+import Signup from "./pages/Signup";
 
 // 라우트 정의
 export const router = createBrowserRouter([
@@ -44,8 +44,8 @@ export const router = createBrowserRouter([
                 element: <Login />,
             },
             {
-                path: "register",
-                element: <Register />,
+                path: "signup",
+                element: <Signup />,
             },
             {
                 path: "mypage",

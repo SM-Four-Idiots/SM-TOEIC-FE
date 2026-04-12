@@ -32,11 +32,10 @@
 
 import { logout, setAccessToken } from "@/store/authSlice";
 import { store } from "@/store/store";
-import type { ApiResponse } from "@/types/api";
 import type { ReissueResult } from "@/types/member";
 import axios, { type InternalAxiosRequestConfig } from "axios";
 
-type ReissueResponse = ApiResponse<ReissueResult>;
+type ReissueResponse = ReissueResult;
 
 // 인증 관련 예외 URL 목록을 상단에 배열로 분리
 // 또한, 읽기 전용 상수로 선언해 변경 불가하게 함
@@ -56,7 +55,7 @@ const NO_REISSUE_PATHS = [
 ] as const;
 
 const axiosInstance = axios.create({
-    baseURL: `${import.meta.env.VITE_API_URL}/api/v1`,
+    baseURL: `${import.meta.env.VITE_API_URL}/api`,
     withCredentials: true, // 쿠키 전송
     timeout: 10000, // 10초 넘어가면 timeouts
 });
@@ -137,12 +136,12 @@ axiosInstance.interceptors.response.use(
                             );
 
                         // response data가 없을 시
-                        if (!response.data.isSuccess) {
+                        if (!response) {
                             throw new Error("토큰 재발급 실패");
                         }
 
                         // 성공 시 accessToken 반환
-                        return response.data.result.accessToken;
+                        return response.data.accessToken;
                     })().finally(() => {
                         // refreshPromise 초기화(null)
                         refreshPromise = null;

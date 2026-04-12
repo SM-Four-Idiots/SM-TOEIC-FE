@@ -1,22 +1,16 @@
-import { loginApi } from "@/api/authApi";
-import { getMyInfoApi } from "@/api/memberApi";
+import { signupApi } from "@/api/authApi";
 import FormButton from "@/components/common/button/FormButton";
 import FormInput from "@/components/common/input/FormInput";
-import { type LoginType, loginSchema } from "@/schema/authSchema";
-import { setAccessToken, login } from "@/store/authSlice";
-import { useAppDispatch } from "@/store/hooks";
+import { registerSchema, type RegisterType } from "@/schema/authSchema";
 import { handleApiError } from "@/utils/errorHandler";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
-export default function Login() {
+export default function Signup() {
     const [isLoading, setIsLoading] = useState(false);
-
-    const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const location = useLocation();
 
     const {
         register,
@@ -24,54 +18,21 @@ export default function Login() {
         formState: { errors },
         setError,
         clearErrors,
-    } = useForm<LoginType>({
-        resolver: zodResolver(loginSchema),
+    } = useForm<RegisterType>({
+        resolver: zodResolver(registerSchema),
     });
 
-    const onSubmit = handleSubmit(async (form: LoginType) => {
+    const onSubmit = handleSubmit(async (data) => {
         setIsLoading(true);
         try {
-            /* 로그인 요청 */
-            // fetch-POST('/api/auth/login', data) [데이터를 로그인 검증 API로 전송]
-            const loginRes = await loginApi(form);
-
-            // 로그인 요청 실패시 처리
-            if (!loginRes) {
-                setError("root", {
-                    message: "아이디 혹은 비밀번호가 틀렸습니다.",
-                });
-                return;
-            }
-
-            // 로그인 응답에서 accessToken을 받아 Redux에 저장
-            const accessToken = loginRes.accessToken;
-            dispatch(setAccessToken(accessToken));
-
-            /* 유저 정보 조회 */
-            // 성공시에만 login 확정
-            const userRes = await getMyInfoApi();
-
-            // 유저 정보 불러오기 실패시 처리
-            if (!userRes) {
-                console.warn("유저 정보 조회에 실패했습니다.");
-                setError("root", {
-                    message: "유저 정보 조회에 실패했습니다.",
-                });
-                return;
-            }
-
-            // 성공시 redux store에 유저 데이터 저장
-            dispatch(
-                login({
-                    nickname: userRes.nickname,
-                })
-            );
-            // 원래 가려던 페이지로 복귀(없으면 "/"로)
-            const from =
-                (location.state as { from?: Location })?.from?.pathname || "/";
-            void navigate(from, { replace: true });
+            await signupApi({
+                nickname: data.nickname,
+                email: data.email,
+                password: data.password,
+            });
+            void navigate("/login");
         } catch (err) {
-            handleApiError(err, setError, "로그인 실패: 다시 시도해주세요.");
+            handleApiError(err, setError, "회원가입 실패: 다시 시도해주세요.");
         } finally {
             setIsLoading(false);
         }
@@ -96,10 +57,10 @@ export default function Login() {
                 {/* 카드 헤더 (타이틀, 서브타이틀) */}
                 <div className="text-center mb-8">
                     <h2 className="text-xl font-bold text-[#1A1A1A] mb-2">
-                        로그인
+                        회원가입
                     </h2>
                     <p className="text-sm text-[#8C8C8C]">
-                        계정에 로그인하여 학습을 시작하세요
+                        새로운 계정을 만들어 학습을 시작하세요
                     </p>
                 </div>
                 {/* 로그인 폼 */}
@@ -108,9 +69,19 @@ export default function Login() {
                     className="flex flex-col gap-5"
                 >
                     <FormInput
+                        label="닉네임"
+                        type="text"
+                        placeholder="홍길동"
+                        required
+                        {...register("nickname")}
+                        error={errors.nickname?.message}
+                        isPlaceholder={false}
+                        onFocus={() => clearErrors("root")}
+                    />
+                    <FormInput
                         label="이메일"
-                        type="id"
-                        placeholder="이메일을 입력하세요"
+                        type="text"
+                        placeholder="example@email.com"
                         required
                         {...register("email")}
                         error={errors.email?.message}
@@ -120,10 +91,19 @@ export default function Login() {
                     <FormInput
                         label="비밀번호"
                         type="password"
-                        placeholder="비밀번호를 입력하세요"
+                        placeholder="8자 이상 입려갛세요"
                         {...register("password")}
                         required
                         error={errors.password?.message}
+                        onFocus={() => clearErrors("root")}
+                    />
+                    <FormInput
+                        label="비밀번호 확인"
+                        type="password"
+                        placeholder="비밀번호를 다시 입력하세요"
+                        {...register("passwordConfirmation")}
+                        required
+                        error={errors.passwordConfirmation?.message}
                         onFocus={() => clearErrors("root")}
                     />
                     {/* root 에러 메시지*/}
@@ -143,23 +123,16 @@ export default function Login() {
                 </form>
                 {/* 카드 하단 회원가입 링크 */}
                 <div className="flex justify-center items-center gap-1 mt-6 text-sm">
-                    <span className="text-[#8C8C8C]">계정이 없으신가요?</span>
+                    <span className="text-[#8C8C8C]">
+                        이미 계정이 있으신가요?
+                    </span>
                     <Link
-                        to="/signup"
+                        to="/login"
                         className="font-bold text-[#D67629] hover:underline"
                     >
-                        회원가입
+                        로그인
                     </Link>
                 </div>
-            </section>
-            {/* 3. 관리자 로그인 링크 (카드 바깥 영역) */}
-            <section className="mt-8">
-                <Link
-                    to="/admin/login"
-                    className="text-sm text-[#8C8C8C] hover:text-[#1A1A1A] transition-colors"
-                >
-                    관리자 로그인 →
-                </Link>
             </section>
         </div>
     );

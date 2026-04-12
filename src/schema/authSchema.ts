@@ -11,15 +11,13 @@
 
 import z from "zod";
 import {
-    idEasyValidation,
-    idHardValidation,
     passwordEasyValidation,
     passwordHardValidation,
 } from "./authValidators";
 
 // 로그인 스키마
 export const loginSchema = z.object({
-    id: idEasyValidation,
+    email: z.email(),
     password: passwordEasyValidation,
 });
 export type LoginType = z.infer<typeof loginSchema>;
@@ -27,12 +25,13 @@ export type LoginType = z.infer<typeof loginSchema>;
 // 회원가입 스키마
 export const registerSchema = z
     .object({
-        id: idHardValidation,
+        nickname: z.string(),
+        email: z.email(),
         password: passwordHardValidation,
         passwordConfirmation: z.string(),
     })
     .refine((data) => data.password === data.passwordConfirmation, {
         message: "비밀번호가 일치하지 않습니다.",
-        path: ["newPasswordConfirmation"],
+        path: ["passwordConfirmation"],
     });
 export type RegisterType = z.infer<typeof registerSchema>;

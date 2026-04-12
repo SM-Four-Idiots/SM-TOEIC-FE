@@ -1,13 +1,30 @@
 import LinkButton from "@/components/common/button/LinkButton";
+import { useAppSelector } from "@/store/hooks";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
+    const user = useAppSelector((state) => state.authState.user);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!user) {
+            void navigate("/login", { replace: true });
+        }
+    });
+
+    // 깜빡임 방지
+    if (!user) {
+        return null;
+    }
+
     return (
         <div className="w-full max-w-300 mx-auto px-8 flex flex-col gap-6 mt-8">
             {/* 1. 메인 상단 (인사말 & 연속 출석) */}
             <section className="flex items-end justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-[#1A1A1A]">
-                        안녕하세요, 토스트마스터님!
+                        안녕하세요, {user?.nickname}님!
                     </h1>
                     <h2 className="text-[#8C8C8C] mt-1">
                         오늘도 토스트를 키워볼까요?
@@ -41,14 +58,13 @@ export default function Home() {
                         <p className="text-lg font-bold text-[#1A1A1A]">
                             내 토스트
                         </p>
-                        <p className="text-sm text-[#8C8C8C]">Silver Tier</p>
                     </div>
                     <div className="text-6xl">🥪</div>
                 </div>
                 <div className="flex items-end justify-between mb-2">
                     <div className="flex items-center gap-2">
                         <span className="px-3 py-1 bg-[#F0E5D5] text-[#1A1A1A] text-sm font-bold rounded-lg">
-                            Lv.12
+                            Silver
                         </span>
                         <span className="px-3 py-1 bg-[#34C759] text-white text-xs font-bold rounded-lg">
                             승급 가능!
@@ -77,7 +93,7 @@ export default function Home() {
                     ></div>
                 </div>
                 <p className="text-xs text-[#8C8C8C] text-right mb-6">
-                    다음 레벨까지 150 XP 남음
+                    다음 티어까지 150 XP 남음
                 </p>
 
                 <div className="grid grid-cols-2 gap-3">

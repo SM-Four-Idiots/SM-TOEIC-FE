@@ -5,8 +5,7 @@
 
 // 유저 상세 정보
 export interface MemberResult {
-    id: string;
-    name: string;
+    nickname: string;
 }
 
 // 로그인 성공
@@ -16,12 +15,13 @@ export interface LoginResult {
 }
 
 // 회원가입 결과
-export interface RegisterResult {
-    id: string;
-    name: string;
-}
+export type RegisterResult = void;
+
+// 로그아웃 결과
+export type logoutResult = void;
 
 // 토큰 재발급
 export interface ReissueResult {
     accessToken: string;
+    refreshToken: string;
 }
