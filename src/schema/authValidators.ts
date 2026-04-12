@@ -1,0 +1,43 @@
+/**
+ * 사용자 인증 폼에서 사용되는 개별 입력 필드의 유효성 검사 규칙을 정의한 파일입니다.
+ * Zod 라이브러리와 정규식을 사용하여 검증 로직을 한 곳에서 중앙 관리합니다.
+ *
+ * 주요 유효성 검사 규칙은 다음과 같습니다.
+ * - idValidation을 통해 아이디를 검증합니다.
+ * - passwordValidation로 비밀번호를 검증합니다.
+ *
+ * idHardValidation은 다음을 검사합니다.
+ * - 숫자 9자리 형식인지 검증합니다.
+ * - 단, 관리자 계정인 "Bossisme"는 예외로 통과시킵니다.
+ *
+ * passwordHardValidation는 다음의 규칙을 모두 만족해야 합니다.
+ * - 길이: 8자 이상
+ * - 공백(띄어쓰기) 사용 불가
+ * - 영문자, 숫자를 각각 최소 1개 이상 포함
+ * - 보안상 위험할 수 있는 특정 특수문자( < > { } | ; ' " ) 사용 금지
+ */
+
+import z from "zod";
+
+export const idEasyValidation = z.string().min(1, "학번을 입력해주세요.");
+
+export const idHardValidation = z
+    .string()
+    .refine(
+        (v) => v === "Bossisme" || /^\d{9}$/.test(v),
+        "학번은 숫자 9자리입니다."
+    );
+
+export const passwordEasyValidation = z
+    .string()
+    .min(1, "비밀번호를 입력해주세요.");
+
+export const passwordHardValidation = z
+    .string()
+    .min(8, "비밀번호는 8자 이상이어야 합니다.")
+    .regex(/^\S+$/, "공백은 사용할 수 없습니다.")
+    .regex(
+        /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9!@#$%^&*()_+\-=[\]{}\\:;,./?~`]+$/,
+        "영문자, 숫자를 각각 최소 1개씩 포함해야 합니다."
+    )
+    .regex(/^[^<>{}|;'"]+$/, "사용 불가능한 특수문자가 포함되어 있습니다.");
