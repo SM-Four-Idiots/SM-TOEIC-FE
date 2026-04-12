@@ -38,7 +38,7 @@ const _Input = (
             {label && !isPlaceholder && (
                 <label
                     htmlFor={name}
-                    className="body-t1 underline underline-offset-2 mb-[15px]"
+                    className="body-t1 underline underline-offset-2 mb-3.75"
                 >
                     {label}
                 </label>
@@ -52,7 +52,7 @@ const _Input = (
                 className={`rounded-[10px] ring-1 h-20 bg-stroke body-t7 p-4 outline-none transition-colors resize-none ${error ? "ring-accent focus:ring-accent" : "focus:ring-secondary ring-background-200"} ${className || ""} `}
             />
             {error && (
-                <span className="flex flex-col body-t5 text-accent mt-[5px]">
+                <span className="flex flex-col body-t5 text-accent mt-3.75">
                     {error}
                 </span>
             )}

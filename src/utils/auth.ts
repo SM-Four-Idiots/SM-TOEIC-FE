@@ -8,23 +8,22 @@
  */
 
 import axiosInstance from "@/api/axiosInstance";
-import type { ApiResponse } from "@/types/api";
 import type { MemberResult } from "@/types/member";
 import axios from "axios";
 
-type MemberResponse = ApiResponse<MemberResult>;
+type MemberResponse = MemberResult;
 
 export const fetchUser = async (): Promise<MemberResult | null> => {
     try {
         // 유저 정보 요청
         const response = await axiosInstance.get<MemberResponse>("/members/my");
-        if (!response.data?.isSuccess) {
+        if (!response.data) {
             console.warn("유저 데이터를 불러오는데 실패했습니다.");
             return null;
         }
 
         // 성공시 유저 정보 반환
-        return response.data.result;
+        return response.data;
     } catch (err) {
         if (axios.isAxiosError(err)) {
             console.error(
