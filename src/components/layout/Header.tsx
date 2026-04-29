@@ -1,6 +1,19 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Header() {
+    const location = useLocation();
+
+    // 현재 경로(pathname)와 메뉴의 경로(path)가 일치하는지 확인하여 동적으로 클래스를 반환하는 함수
+    const getNavClass = (path: string) => {
+        const isActive = location.pathname === path;
+
+        return `flex items-center gap-1.5 px-4 py-2 rounded-[10px] font-medium transition-all duration-200 ${
+            isActive
+                ? "bg-[#D67629] text-white" // 현재 주소일 때 (활성화)
+                : "text-[#8C8C8C] hover:text-[#1A1A1A] hover:bg-gray-50" // 다른 주소일 때 (비활성화)
+        }`;
+    };
+
     return (
         <header className="sticky top-0 z-50 w-full h-20 bg-white/80 backdrop-blur-md border-b border-[#EAEAEA]">
             <div className="flex items-center justify-between w-full h-full max-w-300 px-8 mx-auto">
@@ -15,10 +28,7 @@ export default function Header() {
                 </Link>
                 {/* 2. 중앙 네비게이션 영역 */}
                 <nav className="flex items-center gap-2">
-                    <Link
-                        to="/"
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-[10px] font-medium transition-all duration-200 bg-[#D67629] text-white"
-                    >
+                    <Link to="/" className={getNavClass("/")}>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -37,10 +47,7 @@ export default function Header() {
                         </svg>
                         <span>홈</span>
                     </Link>
-                    <Link
-                        to="/words"
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-[10px] font-medium transition-all duration-200 text-[#8C8C8C] hover:text-[#1A1A1A] hover:bg-gray-50"
-                    >
+                    <Link to="/words" className={getNavClass("/words")}>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -59,10 +66,7 @@ export default function Header() {
                         </svg>
                         <span>단어장</span>
                     </Link>
-                    <Link
-                        to="/quests"
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-[10px] font-medium transition-all duration-200 text-[#8C8C8C] hover:text-[#1A1A1A] hover:bg-gray-50"
-                    >
+                    <Link to="/quests" className={getNavClass("/quests")}>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -113,10 +117,7 @@ export default function Header() {
                         </svg>
                         <span>랭킹</span>
                     </Link>
-                    <Link
-                        to="/mypage"
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-[10px] font-medium transition-all duration-200 text-[#8C8C8C] hover:text-[#1A1A1A] hover:bg-gray-50"
-                    >
+                    <Link to="/mypage" className={getNavClass("/mypage")}>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
