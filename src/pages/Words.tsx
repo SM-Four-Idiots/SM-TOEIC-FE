@@ -1,3 +1,7 @@
+import { useAppSelector } from "@/store/hooks";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 // 임시 단어 데이터
 const DUMMY_WORDS = [
     {
@@ -31,6 +35,20 @@ const DUMMY_WORDS = [
 ];
 
 export default function Words() {
+    const user = useAppSelector((state) => state.authState.user);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!user) {
+            void navigate("/login", { replace: true });
+        }
+    });
+
+    // 깜빡임 방지
+    if (!user) {
+        return null;
+    }
+
     // 캡처본에 맞춘 뱃지 색상 매핑 함수
     const getBadgeStyle = (level: string) => {
         switch (level) {
