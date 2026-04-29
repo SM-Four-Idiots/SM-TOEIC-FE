@@ -22,6 +22,7 @@ import App from "./App";
 import { ProtectedAdminRoute } from "./components/route/ProtectedAdminRoute";
 import { ProtectedRoute } from "./components/route/ProtectedRoute";
 import AdminHome from "./pages/AdminHome";
+import AdminWordManagement from "./pages/AdminWordManagement";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import MyPage from "./pages/MyPage";
@@ -73,6 +74,10 @@ export const router = createBrowserRouter([
                     {
                         index: true, // path: '/admin'
                         element: <AdminHome />,
+                    },
+                    {
+                        path: "words", // path: '/admin/words'
+                        element: <AdminWordManagement />,
                     },
                 ],
             },
