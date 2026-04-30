@@ -19,13 +19,15 @@
 
 import { createBrowserRouter, Outlet } from "react-router-dom";
 import App from "./App";
+import { ProtectedAdminRoute } from "./components/route/ProtectedAdminRoute";
 import { ProtectedRoute } from "./components/route/ProtectedRoute";
+import AdminHome from "./pages/AdminHome";
+import AdminWordManagement from "./pages/AdminWordManagement";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import MyPage from "./pages/MyPage";
-import { ProtectedAdminRoute } from "./components/route/ProtectedAdminRoute";
-import AdminHome from "./pages/AdminHome";
 import Signup from "./pages/Signup";
+import Words from "./pages/Words";
 
 // 라우트 정의
 export const router = createBrowserRouter([
@@ -55,6 +57,10 @@ export const router = createBrowserRouter([
                     </ProtectedRoute>
                 ),
             },
+            {
+                path: "words",
+                element: <Words />,
+            },
 
             // 관리자 페이지
             {
@@ -68,6 +74,10 @@ export const router = createBrowserRouter([
                     {
                         index: true, // path: '/admin'
                         element: <AdminHome />,
+                    },
+                    {
+                        path: "words", // path: '/admin/words'
+                        element: <AdminWordManagement />,
                     },
                 ],
             },

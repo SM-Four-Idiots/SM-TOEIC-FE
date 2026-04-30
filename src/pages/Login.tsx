@@ -3,13 +3,13 @@ import { getMyInfoApi } from "@/api/memberApi";
 import FormButton from "@/components/common/button/FormButton";
 import FormInput from "@/components/common/input/FormInput";
 import { type LoginType, loginSchema } from "@/schema/authSchema";
-import { setAccessToken, login } from "@/store/authSlice";
+import { login, setAccessToken } from "@/store/authSlice";
 import { useAppDispatch } from "@/store/hooks";
 import { handleApiError } from "@/utils/errorHandler";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Login() {
     const [isLoading, setIsLoading] = useState(false);
@@ -151,15 +151,6 @@ export default function Login() {
                         회원가입
                     </Link>
                 </div>
-            </section>
-            {/* 3. 관리자 로그인 링크 (카드 바깥 영역) */}
-            <section className="mt-8">
-                <Link
-                    to="/admin/login"
-                    className="text-sm text-[#8C8C8C] hover:text-[#1A1A1A] transition-colors"
-                >
-                    관리자 로그인 →
-                </Link>
             </section>
         </div>
     );
