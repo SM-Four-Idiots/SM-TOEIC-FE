@@ -21,7 +21,7 @@ export type RegisterResult = void;
 export type logoutResult = void;
 
 // 토큰 재발급
-export interface ReissueResult {
+export interface RefreshResult {
     accessToken: string;
     refreshToken: string;
 }

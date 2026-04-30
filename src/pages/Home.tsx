@@ -1,11 +1,11 @@
 import LinkButton from "@/components/common/button/LinkButton";
 import { useAppSelector } from "@/store/hooks";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Home() {
     const user = useAppSelector((state) => state.authState.user);
 
-    // api 연동시 주석 삭제 요망
-    /*
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -18,7 +18,6 @@ export default function Home() {
     if (!user) {
         return null;
     }
-    */
 
     return (
         <div className="w-full max-w-300 mx-auto px-8 flex flex-col gap-6 mt-8">

@@ -32,10 +32,10 @@
 
 import { logout, setAccessToken } from "@/store/authSlice";
 import { store } from "@/store/store";
-import type { ReissueResult } from "@/types/member";
+import type { RefreshResult } from "@/types/member";
 import axios, { type InternalAxiosRequestConfig } from "axios";
 
-type ReissueResponse = ReissueResult;
+type ReissueResponse = RefreshResult;
 
 // 인증 관련 예외 URL 목록을 상단에 배열로 분리
 // 또한, 읽기 전용 상수로 선언해 변경 불가하게 함
@@ -44,7 +44,6 @@ const NO_TOKEN_PATHS = [
     "/auth/login",
     "/auth/reissue",
     "/auth/signup",
-    "/auth/smul",
 ] as const;
 
 // 단, logout의 경우 좀비세션을 막기 위해 분리
