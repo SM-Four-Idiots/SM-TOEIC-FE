@@ -7,14 +7,13 @@
  * 또한, 로그인 상태여도 유저의 이름이 'Admin'이 아닌 경우 '/' 메인 랜딩 페이지로 리디렉션 시킵니다.
  */
 
-import { useAppSelector } from "@/store/hooks";
-import { Navigate, useLocation } from "react-router-dom";
-
 export const ProtectedAdminRoute = ({
     children,
 }: {
     children: React.ReactNode;
 }) => {
+    // api 연동시 주석 삭제 요망
+    /*
     const { isLogin, authInitialized, user } = useAppSelector(
         (state) => state.authState
     );
@@ -34,9 +33,9 @@ export const ProtectedAdminRoute = ({
         return <Navigate to="/login" replace state={{ from: location }} />;
     }
     // Bossisme가 아니면 메인 페이지로 이동
-    if (user?.id !== "Admin") {
+    if (user?.nickname !== "Admin") {
         return <Navigate to="/" replace />;
-    }
+    }*/
 
     return children;
 };
