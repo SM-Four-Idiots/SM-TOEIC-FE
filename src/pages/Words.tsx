@@ -1,70 +1,179 @@
-import { useAppSelector } from "@/store/hooks";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback } from "react";
+import axios from "axios";
+import { getWords } from "@/api/wordApi";
+import type { Word } from "@/types/word";
 
-// 임시 단어 데이터
-const DUMMY_WORDS = [
-    {
-        id: 1,
-        word: "accomplish",
-        level: "Bronze",
-        meaning: "성취하다, 달성하다",
-        example: "She accomplished her goal.",
-    },
-    {
-        id: 2,
-        word: "acknowledge",
-        level: "Bronze",
-        meaning: "인정하다, 승인하다",
-        example: "He acknowledged his mistake.",
-    },
-    {
-        id: 3,
-        word: "acquire",
-        level: "Bronze",
-        meaning: "얻다, 습득하다",
-        example: "She acquired new skills.",
-    },
-    {
-        id: 4,
-        word: "adequate",
-        level: "Silver",
-        meaning: "충분한, 적절한",
-        example: "The salary is adequate.",
-    },
-];
+// [Front-end] 컴포넌트 내부 상태(State)에 의존하지 않는 순수 함수.
+// 파라미터(tierLevel): DB에서 응답받은 숫자 형태의 난이도 레벨.
+// 역할: 전달받은 난이도 숫자에 매칭되는 프론트엔드 UI 텍스트와 렌더링 스타일(Tailwind CSS) 객체를 반환합니다.
+// 최적화: 불필요한 메모리 재할당을 막기 위해 컴포넌트 외부에 선언되었습니다.
+const getBadgeStyle = (tierLevel: number) => {
+    switch (tierLevel) {
+        case 1:
+            return { text: "Bronze", style: "bg-[#FDF3E1] text-[#D67629]" };
+        case 2:
+            return { text: "Silver", style: "bg-[#F0F4F8] text-[#6B7280]" };
+        case 3:
+            return { text: "Gold", style: "bg-[#FEF3C7] text-[#D97706]" };
+        default:
+            return {
+                text: `Tier ${tierLevel}`,
+                style: "bg-gray-100 text-gray-600",
+            };
+    }
+};
 
 export default function Words() {
-    const user = useAppSelector((state) => state.authState.user);
-    const navigate = useNavigate();
+    // [Front-end] 컴포넌트의 렌더링을 제어하는 상태 변수들.
+    // words: 화면에 그려질 단어 목록 배열
+    // isLoading: 데이터 통신 진행 여부 (로딩 스피너 제어)
+    // error: 비동기 통신 실패 시 사용자에게 보여줄 에러 메시지 텍스트
+    const [words, setWords] = useState<Word[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
+    // [Front-end] 재시도(Retry) 기능과 마운트 시 자동 호출을 위해 캡슐화된 비동기 Fetch 함수.
+    // useCallback을 사용하여 의존성 배열([])이 변하지 않는 한 메모리에서 재생성되지 않습니다.
+    // 파라미터(signal): AbortController의 signal 객체. 네트워크 요청 중단(Cancel) 처리에 사용됩니다.
+    const fetchWords = useCallback(async (signal?: AbortSignal) => {
+        try {
+            setIsLoading(true);
+            setError(null);
+
+            // [Back-end & DB 흐름]
+            // 1. 프론트엔드에서 '/api/words' 엔드포인트로 GET 요청을 전송합니다.
+            // 2. 백엔드 Controller가 요청을 받아 Service 계층으로 전달합니다.
+            // 3. Service 계층에서 데이터베이스(MySQL 등)의 'Word' 테이블에 SELECT 쿼리를 실행하여 단어 목록을 조회합니다.
+            // 4. (백엔드 최적화 포인트) 이때 카테고리 등 연관 데이터가 있다면 DB 쿼리에서 JOIN 처리하여 N+1 문제를 방지한 상태로 데이터를 가져옵니다.
+            // 5. 조회된 데이터를 DTO로 변환 후, JSON 배열 형태로 프론트엔드에 응답(Response)합니다.
+            const data = await getWords(signal);
+
+            // [Front-end] 정상적으로 응답받은 배열 데이터를 React 상태에 업데이트하여 UI 렌더링을 트리거합니다.
+            setWords(data);
+        } catch (err: unknown) {
+            // [Front-end] 유저가 로딩 도중 페이지를 벗어나서 발생하는 의도적인 요청 취소 에러는 무시(return)합니다.
+            if (axios.isCancel(err)) {
+                console.warn("API 요청 취소됨");
+                return;
+            }
+
+            // [Front-end] isAxiosError 제네릭을 활용하여 백엔드 에러 응답 객체의 타입을 안전하게 추론합니다.
+            if (axios.isAxiosError<{ message?: string }>(err)) {
+                if (
+                    err.code === "ECONNABORTED" ||
+                    err.message.includes("timeout")
+                ) {
+                    setError(
+                        "요청 시간이 초과되었습니다. 인터넷 연결을 확인해주세요."
+                    );
+                } else {
+                    // [Back-end 흐름] 백엔드에서 비즈니스 로직 예외 발생 시 내려준 커스텀 에러 메시지(message 필드)를 우선 노출합니다.
+                    setError(
+                        err.response?.data?.message ||
+                            "서버 통신 중 오류가 발생했습니다."
+                    );
+                }
+            } else {
+                setError("알 수 없는 에러가 발생했습니다.");
+            }
+        } finally {
+            // [Front-end] 성공/실패 여부에 상관없이 로딩 상태를 종료하여 UI 차단을 해제합니다.
+            setIsLoading(false);
+        }
+    }, []);
+
+    // [Front-end] 컴포넌트 라이프사이클 관리 훅
     useEffect(() => {
-        if (!user) {
-            void navigate("/login", { replace: true });
-        }
-    });
+        // 네트워크 요청의 생명주기를 컴포넌트의 생명주기에 결합시키는 안전장치입니다.
+        const abortController = new AbortController();
 
-    // 깜빡임 방지
-    if (!user) {
-        return null;
-    }
+        // 마운트 시 즉시 단어 데이터 조회를 시작합니다.
+        void fetchWords(abortController.signal);
 
-    // 캡처본에 맞춘 뱃지 색상 매핑 함수
-    const getBadgeStyle = (level: string) => {
-        switch (level) {
-            case "Bronze":
-                return "bg-[#FDF3E1] text-[#D67629]"; // 연한 주황 배경, 브랜드 오렌지 글씨
-            case "Silver":
-                return "bg-[#F0F4F8] text-[#6B7280]"; // 연한 회색/파랑 배경, 회색 글씨
-            default:
-                return "bg-gray-100 text-gray-600";
+        // [Front-end Cleanup] 컴포넌트가 언마운트(화면에서 사라짐)될 때 실행됩니다.
+        // 진행 중이던 API 백엔드 통신을 강제 취소하여 메모리 누수와 상태 업데이트 충돌(Race Condition)을 방지합니다.
+        return () => {
+            abortController.abort();
+        };
+    }, [fetchWords]);
+
+    // [Front-end] 백엔드가 만약의 상황에 JSON 배열이 아닌 다른 타입을 내려주었을 때
+    // .map() 함수 호출 시 발생하는 런타임 에러(화면 백지화)를 막기 위한 최종 방어선입니다.
+    const safeWords = Array.isArray(words) ? words : [];
+
+    // [Front-end] 메인 콘텐츠 영역의 렌더링을 담당하는 헬퍼 함수입니다.
+    // 상태에 따라 스켈레톤(스피너), 에러+재시도 화면, 빈 데이터 화면, 정상 리스트 화면 중 하나를 반환합니다.
+    const renderContent = () => {
+        if (isLoading) {
+            return (
+                <div className="py-20 text-center text-[#8C8C8C] flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-4 border-[#EAEAEA] border-t-[#1A1A1A] rounded-full animate-spin"></div>
+                    <p>단어 목록을 불러오는 중입니다...</p>
+                </div>
+            );
         }
+
+        if (error) {
+            return (
+                <div className="py-20 flex flex-col justify-center items-center gap-4">
+                    <p className="text-red-500 font-medium">{error}</p>
+                    <button
+                        onClick={() => void fetchWords()}
+                        className="px-4 py-2 bg-[#1A1A1A] text-white rounded-lg text-sm font-medium hover:bg-[#333333] transition-colors"
+                    >
+                        다시 시도
+                    </button>
+                </div>
+            );
+        }
+
+        if (safeWords.length === 0) {
+            return (
+                <div className="py-20 text-center text-[#8C8C8C]">
+                    등록된 단어가 없습니다.
+                </div>
+            );
+        }
+
+        return safeWords.map((item) => {
+            // 가져온 숫자형 tierLevel을 바탕으로 시각적 뱃지 UI 스타일을 결정합니다.
+            const badge = getBadgeStyle(item.tierLevel);
+            return (
+                <article
+                    key={item.id}
+                    className="flex items-start justify-between p-6 bg-white rounded-2xl border border-[#EAEAEA] shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-transform hover:-translate-y-0.5"
+                >
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-3">
+                            <span className="text-xl font-bold text-[#1A1A1A]">
+                                {item.english}
+                            </span>
+                            <span
+                                className={`px-2.5 py-0.5 rounded-full text-[12px] font-bold ${badge.style}`}
+                            >
+                                {badge.text}
+                            </span>
+                            {item.category && (
+                                <span className="px-2 py-0.5 rounded-md bg-gray-50 border border-gray-200 text-[11px] text-gray-500">
+                                    {item.category}
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex flex-col gap-1 mt-1">
+                            <p className="text-[15px] font-medium text-[#444444]">
+                                {item.meaning}
+                            </p>
+                        </div>
+                    </div>
+                </article>
+            );
+        });
     };
 
     return (
-        // 전체 배경색이 약간 베이지톤인 것을 감안하여 bg-[#F9F8F6] 느낌을 줄 수 있게 설정 (부모 컴포넌트에서 설정했다면 bg-transparent로 두어도 됨)
         <div className="w-full max-w-200 mx-auto px-6 py-10 flex flex-col gap-8 min-h-screen">
-            {/* 상단 헤더 및 검색 섹션 */}
+            {/* [Front-end UX] 통신 상태(로딩/에러)와 무관하게 상단 헤더의 뼈대는 고정 렌더링합니다.
+                사용자가 다른 페이지로 이동한 듯한 혼란(레이아웃 시프트, CLS)을 방지합니다. */}
             <section className="flex flex-col gap-6">
                 <div className="flex flex-col gap-1.5">
                     <h1 className="text-2xl font-bold text-[#1A1A1A]">
@@ -75,148 +184,22 @@ export default function Words() {
                     </p>
                 </div>
 
-                <form
-                    className="flex gap-3 h-12"
-                    onSubmit={(e) => e.preventDefault()}
-                >
-                    {/* 검색바 */}
-                    <div className="relative flex-1">
-                        <svg
-                            className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#8C8C8C]"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <path d="m21 21-4.3-4.3"></path>
-                        </svg>
-                        <input
-                            placeholder="단어 또는 뜻 검색..."
-                            className="w-full h-full pl-11 pr-4 rounded-[10px] bg-white border border-[#EAEAEA] outline-none text-[15px] placeholder:text-[#8C8C8C] focus:border-[#D67629] focus:ring-1 focus:ring-[#D67629] transition-all"
-                        />
+                {/* 로딩과 에러가 모두 없을 때만 정상적인 데이터 총개수를 표시합니다. */}
+                {!isLoading && !error && (
+                    <div className="flex gap-4 text-[14px] text-[#555555]">
+                        <span>
+                            총{" "}
+                            <strong className="font-bold text-[#1A1A1A]">
+                                {safeWords.length}
+                            </strong>
+                            개 단어
+                        </span>
                     </div>
-                    {/* 필터 버튼 */}
-                    <button
-                        type="button"
-                        className="flex items-center gap-2 h-full px-5 rounded-[10px] bg-white border border-[#EAEAEA] text-[#1A1A1A] font-medium hover:bg-gray-50 transition-colors shrink-0"
-                    >
-                        <svg
-                            className="w-4 h-4 text-[#8C8C8C]"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                        </svg>
-                        전체
-                        <svg
-                            className="w-4 h-4 text-[#8C8C8C]"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        >
-                            <path d="m6 9 6 6 6-6"></path>
-                        </svg>
-                    </button>
-                </form>
-
-                <div className="flex gap-4 text-[14px] text-[#555555]">
-                    <span>
-                        총{" "}
-                        <strong className="font-bold text-[#1A1A1A]">8</strong>
-                        개 단어
-                    </span>
-                    <span>
-                        북마크{" "}
-                        <strong className="font-bold text-[#1A1A1A]">2</strong>
-                        개
-                    </span>
-                </div>
+                )}
             </section>
 
-            {/* 단어 리스트 섹션 */}
-            <section className="flex flex-col gap-4">
-                {DUMMY_WORDS.map((item) => (
-                    <article
-                        key={item.id}
-                        className="flex items-start justify-between p-6 bg-white rounded-2xl border border-[#EAEAEA] shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-transform hover:-translate-y-0.5"
-                    >
-                        <div className="flex flex-col gap-3">
-                            {/* 단어 & 뱃지 */}
-                            <div className="flex items-center gap-3">
-                                <span className="text-xl font-bold text-[#1A1A1A]">
-                                    {item.word}
-                                </span>
-                                <span
-                                    className={`px-2.5 py-0.5 rounded-full text-[12px] font-bold ${getBadgeStyle(item.level)}`}
-                                >
-                                    {item.level}
-                                </span>
-                            </div>
-
-                            {/* 뜻 & 예문 */}
-                            <div className="flex flex-col gap-1 mt-1">
-                                <p className="text-[15px] font-medium text-[#444444]">
-                                    {item.meaning}
-                                </p>
-                                <p className="text-[14px] text-[#8C8C8C] italic">
-                                    {item.example}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* 액션 버튼들 (발음 듣기, 북마크) */}
-                        <div className="flex items-center gap-2 mt-1">
-                            <button className="p-2 text-[#A0A0A0] hover:text-[#D67629] hover:bg-orange-50 rounded-lg transition-colors">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="22"
-                                    height="22"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-                                </svg>
-                            </button>
-                            <button className="p-2 text-[#D67629] hover:bg-orange-50 rounded-lg transition-colors">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="22"
-                                    height="22"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                >
-                                    <path d="M12 7v6"></path>
-                                    <path d="M15 10H9"></path>
-                                    <path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </article>
-                ))}
-            </section>
+            {/* 위에서 정의한 조건부 렌더링 함수를 실행하여 데이터 상태에 맞는 화면을 출력합니다. */}
+            <section className="flex flex-col gap-4">{renderContent()}</section>
         </div>
     );
 }
