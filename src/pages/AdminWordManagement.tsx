@@ -1,8 +1,18 @@
+import React, { useEffect, useState, useCallback, memo } from "react";
 import FormButton from "@/components/common/button/FormButton";
 import FormInput from "@/components/common/input/FormInput";
+import { deleteAdminWord } from "@/api/admin";
 
-// 테스트용 목업 데이터
-const MOCK_WORDS = [
+// [임시 타입 선언]
+interface TempWord {
+    id: number;
+    word: string;
+    meaning: string;
+    tier: string;
+    example: string;
+}
+
+const MOCK_WORDS: TempWord[] = [
     {
         id: 1,
         word: "accomplish",
@@ -61,7 +71,7 @@ const MOCK_WORDS = [
     },
 ];
 
-// 티어별 뱃지 스타일 헬퍼
+//티어별 뱃지 스타일 헬퍼
 const getTierStyle = (tier: string) => {
     switch (tier) {
         case "Bronze":
@@ -77,17 +87,202 @@ const getTierStyle = (tier: string) => {
     }
 };
 
-export default function AdminWordManagement() {
-    // 폼 제출 기본 동작 방지
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        // 검색 로직 추가...
+interface WordTableRowProps {
+    item: TempWord;
+    onDelete: (id: number) => Promise<void>;
+}
+
+// [Front-end 역할] 테이블의 각 행(Row)을 담당하는 컴포넌트입니다. React.memo를 통해 부모 상태 변경 시 불필요한 리렌더링을 방지합니다.
+const WordTableRow = memo(({ item, onDelete }: WordTableRowProps) => {
+    // 해당 행(Row)만의 독립적인 로딩 상태 (버튼 연타 방어용)
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    /**
+     * [Front-end 역할] 유저가 개별 행의 '삭제' 버튼을 클릭했을 때 실행되는 핸들러입니다.
+     * 자체 상태(isDeleting)를 활성화하여 UI 적으로 중복 클릭을 방지하고, 부모로부터 전달받은 API 호출 함수를 실행합니다.
+     */
+    const handleDeleteClick = async () => {
+        if (window.confirm("정말로 이 단어를 삭제하시겠습니까?")) {
+            setIsDeleting(true); // 버튼 비활성화 및 로딩 UI 트리거
+            try {
+                await onDelete(item.id);
+                // 성공 시 부모에 의해 언마운트되므로 setIsDeleting(false) 불필요
+            } catch (error) {
+                // 실패 시 유저가 다시 시도할 수 있도록 버튼 활성화
+                setIsDeleting(false);
+            }
+        }
     };
 
     return (
-        // 전체 레이아웃 폭 조정 및 중앙 정렬 (필요시 max-w-5xl 등 조절)
+        <tr className="border-b border-[#EAEAEA] hover:bg-[#FCFAF6] transition-colors">
+            <td className="py-4 px-6 font-semibold">{item.word}</td>
+            <td className="py-4 px-6 text-[#555]">{item.meaning}</td>
+            <td className="py-4 px-6">
+                <span
+                    className={`px-3 py-1 rounded-full text-xs font-bold ${getTierStyle(item.tier)}`}
+                >
+                    {item.tier}
+                </span>
+            </td>
+            <td className="py-4 px-6 text-[#8C8C8C]">{item.example}</td>
+            <td className="py-4 px-6">
+                <div className="flex items-center justify-center gap-3">
+                    <button
+                        type="button"
+                        className="text-[#8C8C8C] hover:text-[#1A1A1A] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        disabled={isDeleting}
+                        aria-label="수정"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-edit w-4 h-4"
+                        >
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z"></path>
+                        </svg>
+                    </button>
+                    <button
+                        type="button"
+                        className={`transition-colors ${isDeleting ? "text-gray-400 cursor-not-allowed" : "text-[#FF4D4F] hover:text-[#D43F3F]"}`}
+                        onClick={() => void handleDeleteClick()}
+                        disabled={isDeleting}
+                        aria-label="삭제"
+                    >
+                        {isDeleting ? (
+                            <span className="text-xs font-medium animate-pulse">
+                                삭제중
+                            </span>
+                        ) : (
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="lucide lucide-trash-2 w-4 h-4"
+                            >
+                                <path d="M3 6h18"></path>
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                <line x1="10" x2="10" y1="11" y2="17"></line>
+                                <line x1="14" x2="14" y1="11" y2="17"></line>
+                            </svg>
+                        )}
+                    </button>
+                </div>
+            </td>
+        </tr>
+    );
+});
+WordTableRow.displayName = "WordTableRow";
+
+// =====================================================================
+// 메인 컴포넌트
+// =====================================================================
+export default function AdminWordManagement() {
+    const [words, setWords] = useState<TempWord[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    /**
+     * [Front-end 역할] 컴포넌트 마운트 시 최초 1회 전체 단어 목록을 불러와 UI 상태에 업데이트하는 함수입니다.
+     * [Back-end & DB 흐름]
+     * 1. API 연동 시 백엔드의 'GET /admin/words' 엔드포인트를 호출합니다.
+     * 2. DB의 `Word` 테이블에서 조건(페이지네이션, 필터링 등)에 맞는 데이터를 SELECT 쿼리로 조회합니다.
+     * 3. 조회된 엔티티(Entity) 리스트를 JSON 배열 형태로 반환하여 프론트엔드에 응답합니다.
+     */
+    // useCallback을 사용하여 의존성 배열에 의한 불필요한 함수 재생성 방지
+    const fetchWords = useCallback(async () => {
+        setIsLoading(true);
+        setError(null); // 재시도 시 기존 에러 초기화
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 300));
+            setWords(MOCK_WORDS);
+        } catch (error: unknown) {
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "단어 목록을 불러오는 데 실패했습니다.";
+            setError(errorMessage); // alert 대신 상태로 관리
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        void fetchWords();
+    }, [fetchWords]);
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+    };
+
+    /**
+     * [Front-end 역할] 단어 삭제 API를 호출하고 성공 시 로컬 상태(State)에서 해당 단어를 제거(Optimistic Update 방식 일부 차용)하여 즉시 뷰를 갱신합니다.
+     * @param wordId 삭제할 단어의 ID
+     * * [Back-end & DB 흐름]
+     * 1. 실제 deleteAdminWord 함수를 통해 HTTP DELETE 요청이 발생합니다.
+     * 2. 백엔드 DB에서 해당 레코드가 영구적으로 지워집니다(또는 삭제 상태 플래그 변경).
+     * 3. DB 작업이 성공적으로 커밋되면 프론트엔드의 화면 단에서도 해당 항목을 필터링해 없앱니다.
+     */
+    // 하위 컴포넌트(WordTableRow)에 전달될 함수이므로 useCallback으로 감싸 리렌더링 방지
+    const handleDeleteWord = useCallback(async (wordId: number) => {
+        try {
+            await deleteAdminWord(wordId);
+            alert("단어가 성공적으로 삭제되었습니다.");
+            setWords((prevWords) =>
+                prevWords.filter((word) => word.id !== wordId)
+            );
+        } catch (error: unknown) {
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "단어 삭제에 실패했습니다.";
+            alert(errorMessage);
+            throw error; // 에러를 던져서 자식 컴포넌트(WordTableRow)가 isDeleting을 false로 바꿀 수 있게 함
+        }
+    }, []);
+
+    // 1. 로딩 UI
+    if (isLoading) {
+        return (
+            <div className="w-full min-h-[50vh] flex items-center justify-center text-[#8C8C8C]">
+                데이터를 불러오는 중입니다...
+            </div>
+        );
+    }
+
+    // 2. 에러 UI (빈 화면 방어)
+    if (error) {
+        return (
+            <div className="w-full min-h-[50vh] flex flex-col items-center justify-center gap-4 text-[#1A1A1A]">
+                <p className="text-red-500 font-medium">{error}</p>
+                <button
+                    onClick={() => void fetchWords()}
+                    className="px-4 py-2 bg-[#EAEAEA] rounded-lg hover:bg-[#D4D4D4] transition-colors"
+                >
+                    다시 시도
+                </button>
+            </div>
+        );
+    }
+
+    // 3. 정상 렌더링 UI
+    return (
         <div className="w-full max-w-6xl mx-auto p-8 flex flex-col gap-6 text-[#1A1A1A]">
-            {/* 1. 헤더 섹션 */}
             <section className="flex justify-between items-end">
                 <div className="flex flex-col gap-1">
                     <h1 className="text-2xl font-bold">단어 관리</h1>
@@ -96,12 +291,10 @@ export default function AdminWordManagement() {
                     </p>
                 </div>
                 <div className="w-32">
-                    {/* 만들어두신 FormButton 사용 (기본값 main = 오렌지색) */}
                     <FormButton text="+ 단어 추가" />
                 </div>
             </section>
 
-            {/* 2. 검색 섹션 */}
             <form
                 onSubmit={handleSearch}
                 className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-[#EAEAEA] shadow-sm"
@@ -117,7 +310,7 @@ export default function AdminWordManagement() {
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="lucide lucide-search absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+                        className="lucide lucide-search absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C8C8C]"
                         aria-hidden="true"
                     >
                         <path d="m21 21-4.34-4.34"></path>
@@ -125,10 +318,10 @@ export default function AdminWordManagement() {
                     </svg>
                     <FormInput
                         placeholder="단어 또는 뜻 검색..."
-                        className="pl-12 h-12! border-none ring-0 focus:ring-0" // 내부 테두리 제거
+                        className="pl-12 h-12 border-none ring-0 focus:ring-0"
                     />
                 </div>
-                <div className="w-px h-6 bg-[#EAEAEA]"></div> {/* 구분선 */}
+                <div className="w-px h-6 bg-[#EAEAEA]"></div>
                 <select className="px-4 py-2 bg-transparent outline-none text-sm cursor-pointer">
                     <option value="all">전체</option>
                     <option value="bronze">Bronze</option>
@@ -138,17 +331,15 @@ export default function AdminWordManagement() {
                 </select>
             </form>
 
-            {/* 3. 테이블 리스트 섹션 */}
             <div className="flex flex-col gap-3">
                 <p className="text-sm font-medium">
-                    총 <span className="font-bold">{MOCK_WORDS.length}</span>개
-                    단어
+                    총 <span className="font-bold">{words.length}</span>개 단어
                 </p>
 
                 <div className="bg-white rounded-2xl border border-[#EAEAEA] shadow-sm overflow-hidden">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-[#EAEAEA] text-sm font-bold">
+                            <tr className="border-b border-[#EAEAEA] text-sm font-bold bg-[#FAFAFA]">
                                 <th className="py-4 px-6 font-medium w-[15%]">
                                     단어
                                 </th>
@@ -167,72 +358,25 @@ export default function AdminWordManagement() {
                             </tr>
                         </thead>
                         <tbody className="text-sm">
-                            {MOCK_WORDS.map((item) => (
-                                <tr
-                                    key={item.id}
-                                    className="border-b border-[#EAEAEA] hover:bg-[#FCFAF6] transition-colors"
-                                >
-                                    <td className="py-4 px-6 font-semibold">
-                                        {item.word}
-                                    </td>
-                                    <td className="py-4 px-6 text-[#555]">
-                                        {item.meaning}
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-xs font-bold ${getTierStyle(item.tier)}`}
-                                        >
-                                            {item.tier}
-                                        </span>
-                                    </td>
-                                    <td className="py-4 px-6 text-[#8C8C8C]">
-                                        {item.example}
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <div className="flex items-center justify-center gap-3">
-                                            <button className="text-[#8C8C8C] hover:text-[#1A1A1A] transition-colors">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="24"
-                                                    height="24"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    strokeWidth="2"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    className="lucide lucide-pencil w-4 h-4"
-                                                    aria-hidden="true"
-                                                >
-                                                    <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path>
-                                                    <path d="m15 5 4 4"></path>
-                                                </svg>
-                                            </button>
-                                            <button className="text-[#8C8C8C] hover:text-red-500 transition-colors">
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    width="24"
-                                                    height="24"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    strokeWidth="2"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    className="lucide lucide-trash2 lucide-trash-2 w-4 h-4"
-                                                    aria-hidden="true"
-                                                >
-                                                    <path d="M10 11v6"></path>
-                                                    <path d="M14 11v6"></path>
-                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-                                                    <path d="M3 6h18"></path>
-                                                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
+                            {words.length === 0 ? (
+                                <tr>
+                                    <td
+                                        colSpan={5}
+                                        className="py-8 text-center text-[#8C8C8C]"
+                                    >
+                                        등록된 단어가 없습니다.
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                words.map((item) => (
+                                    // 분리된 컴포넌트 렌더링 (메모이제이션 적용됨)
+                                    <WordTableRow
+                                        key={item.id}
+                                        item={item}
+                                        onDelete={handleDeleteWord}
+                                    />
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
