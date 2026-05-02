@@ -8,7 +8,7 @@ interface ErrorResponse {
     message?: string;
 }
 
-/**
+/*
  * 어드민 단어 삭제 API 호출 함수
  * @param wordId 삭제할 단어의 고유 ID
  * @returns Promise<void>

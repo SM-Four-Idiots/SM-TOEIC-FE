@@ -97,7 +97,7 @@ const WordTableRow = memo(({ item, onDelete }: WordTableRowProps) => {
     // 해당 행(Row)만의 독립적인 로딩 상태 (버튼 연타 방어용)
     const [isDeleting, setIsDeleting] = useState(false);
 
-    /**
+    /*
      * [Front-end 역할] 유저가 개별 행의 '삭제' 버튼을 클릭했을 때 실행되는 핸들러입니다.
      * 자체 상태(isDeleting)를 활성화하여 UI 적으로 중복 클릭을 방지하고, 부모로부터 전달받은 API 호출 함수를 실행합니다.
      */
@@ -230,7 +230,7 @@ export default function AdminWordManagement() {
         e.preventDefault();
     };
 
-    /**
+    /*
      * [Front-end 역할] 단어 삭제 API를 호출하고 성공 시 로컬 상태(State)에서 해당 단어를 제거(Optimistic Update 방식 일부 차용)하여 즉시 뷰를 갱신합니다.
      * @param wordId 삭제할 단어의 ID
      * * [Back-end & DB 흐름]
