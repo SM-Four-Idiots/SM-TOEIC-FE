@@ -7,19 +7,19 @@ import type { Word } from "@/types/word";
 // 파라미터(tierLevel): DB에서 응답받은 숫자 형태의 난이도 레벨.
 // 역할: 전달받은 난이도 숫자에 매칭되는 프론트엔드 UI 텍스트와 렌더링 스타일(Tailwind CSS) 객체를 반환합니다.
 // 최적화: 불필요한 메모리 재할당을 막기 위해 컴포넌트 외부에 선언되었습니다.
-const getBadgeStyle = (tierLevel: number) => {
-    switch (tierLevel) {
-        case 1:
-            return { text: "Bronze", style: "bg-[#FDF3E1] text-[#D67629]" };
-        case 2:
-            return { text: "Silver", style: "bg-[#F0F4F8] text-[#6B7280]" };
-        case 3:
-            return { text: "Gold", style: "bg-[#FEF3C7] text-[#D97706]" };
+// 티어별 뱃지 스타일 헬퍼 (기존과 동일)
+const getTierStyle = (tier: string) => {
+    switch (tier) {
+        case "Bronze":
+            return "bg-[#F3E5D8] text-[#A67C52]";
+        case "Silver":
+            return "bg-[#E8ECEF] text-[#6C7A89]";
+        case "Gold":
+            return "bg-[#FFF4CE] text-[#D4A017]";
+        case "Diamond":
+            return "bg-[#E0F7FA] text-[#00ACC1]";
         default:
-            return {
-                text: `Tier ${tierLevel}`,
-                style: "bg-gray-100 text-gray-600",
-            };
+            return "bg-gray-100 text-gray-600";
     }
 };
 
@@ -136,8 +136,6 @@ export default function Words() {
         }
 
         return safeWords.map((item) => {
-            // 가져온 숫자형 tierLevel을 바탕으로 시각적 뱃지 UI 스타일을 결정합니다.
-            const badge = getBadgeStyle(item.tierLevel);
             return (
                 <article
                     key={item.id}
@@ -146,12 +144,12 @@ export default function Words() {
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center gap-3">
                             <span className="text-xl font-bold text-[#1A1A1A]">
-                                {item.english}
+                                {item.voca}
                             </span>
                             <span
-                                className={`px-2.5 py-0.5 rounded-full text-[12px] font-bold ${badge.style}`}
+                                className={`px-2.5 py-0.5 rounded-full text-[12px] font-bold ${getTierStyle(item.tier)}`}
                             >
-                                {badge.text}
+                                {item.tier}
                             </span>
                             {item.category && (
                                 <span className="px-2 py-0.5 rounded-md bg-gray-50 border border-gray-200 text-[11px] text-gray-500">
