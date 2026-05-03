@@ -28,6 +28,7 @@ import Login from "./pages/Login";
 import MyPage from "./pages/MyPage";
 import Signup from "./pages/Signup";
 import Words from "./pages/Words";
+import RankUpTestMain from "./pages/RankUpTestMain";
 
 // 라우트 정의
 export const router = createBrowserRouter([
@@ -60,6 +61,10 @@ export const router = createBrowserRouter([
             {
                 path: "words",
                 element: <Words />,
+            },
+            {
+                path: "rankup",
+                element: <RankUpTestMain />,
             },
 
             // 관리자 페이지
