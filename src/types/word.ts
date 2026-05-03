@@ -10,7 +10,7 @@ export interface Word {
 
     // [DB 흐름] 학습할 영단어 원문 데이터가 저장된 컬럼입니다. (VARCHAR)
     // [Front-end 역할] 단어장 카드 UI에서 가장 크게 강조되어 렌더링되는 핵심 텍스트입니다.
-    english: string;
+    voca: string;
 
     // [DB 흐름] 해당 영단어의 뜻(해석) 데이터입니다. (VARCHAR)
     // [Front-end 역할] 영단어(english) 하단에 배치되어 유저에게 단어의 의미를 전달하는 설명 텍스트로 렌더링됩니다.
@@ -21,8 +21,8 @@ export interface Word {
     category: string;
 
     // [DB 흐름] 단어의 난이도를 수치화한 데이터입니다. (INT / TINYINT)
-    // [Front-end 역할] 렌더링 시 이 숫자를 파라미터로 받아, getBadgeStyle 함수를 거쳐 시각적인 등급 뱃지(1: Bronze, 2: Silver, 3: Gold)의 색상과 텍스트를 결정짓는 핵심 조건값입니다.
-    tierLevel: number;
+    // [Front-end 역할] 렌더링 시 이 숫자를 파라미터로 받아, getBadgeStyle 함수를 거쳐 시각적인 등급 뱃지의 색상과 텍스트를 결정짓는 핵심 조건값입니다.
+    tier: string;
 
     // [DB 흐름] 해당 단어 데이터가 DB에 최초로 인서트(Insert)된 시각을 나타내는 타임스탬프입니다. (DATETIME / TIMESTAMP 형식의 ISO 8601 문자열)
     // [Front-end 역할] 현재 UI 화면에 직접적으로 그려지지는 않지만, 프론트엔드에서 데이터를 '최신순'으로 클라이언트 사이드 정렬(Sort)할 때 기준 값으로 활용될 수 있습니다.
