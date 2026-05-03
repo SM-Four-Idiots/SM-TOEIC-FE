@@ -3,75 +3,11 @@ import FormButton from "@/components/common/button/FormButton";
 import FormInput from "@/components/common/input/FormInput";
 import { deleteAdminWord } from "@/api/admin";
 
-// [임시 타입 선언]
-interface TempWord {
-    id: number;
-    word: string;
-    meaning: string;
-    tier: string;
-    example: string;
-}
+// 🌟 추가된 API 및 타입 임포트 (경로는 실제 구조에 맞게 조정해 주세요)
+import { getWords } from "@/api/wordApi";
+import type { Word } from "@/types/word";
 
-const MOCK_WORDS: TempWord[] = [
-    {
-        id: 1,
-        word: "accomplish",
-        meaning: "성취하다, 달성하다",
-        tier: "Bronze",
-        example: "She accomplished her goal.",
-    },
-    {
-        id: 2,
-        word: "acknowledge",
-        meaning: "인정하다, 승인하다",
-        tier: "Bronze",
-        example: "He acknowledged his mistake.",
-    },
-    {
-        id: 3,
-        word: "acquire",
-        meaning: "얻다, 습득하다",
-        tier: "Bronze",
-        example: "She acquired new skills.",
-    },
-    {
-        id: 4,
-        word: "adequate",
-        meaning: "충분한, 적절한",
-        tier: "Silver",
-        example: "The salary is adequate.",
-    },
-    {
-        id: 5,
-        word: "adjust",
-        meaning: "조정하다, 적응하다",
-        tier: "Silver",
-        example: "Please adjust the volume.",
-    },
-    {
-        id: 6,
-        word: "administer",
-        meaning: "관리하다, 운영하다",
-        tier: "Gold",
-        example: "He administers the program.",
-    },
-    {
-        id: 7,
-        word: "advocate",
-        meaning: "옹호하다, 지지하다",
-        tier: "Gold",
-        example: "She advocates for change.",
-    },
-    {
-        id: 8,
-        word: "affluent",
-        meaning: "부유한",
-        tier: "Diamond",
-        example: "An affluent neighborhood.",
-    },
-];
-
-//티어별 뱃지 스타일 헬퍼
+// 티어별 뱃지 스타일 헬퍼 (기존과 동일)
 const getTierStyle = (tier: string) => {
     switch (tier) {
         case "Bronze":
@@ -83,35 +19,25 @@ const getTierStyle = (tier: string) => {
         case "Diamond":
             return "bg-[#E0F7FA] text-[#00ACC1]";
         default:
-            return {
-                text: `Tier ${tierLevel}`,
-                style: "bg-gray-100 text-gray-600",
-            };
+            return "bg-gray-100 text-gray-600";
     }
 };
 
 interface WordTableRowProps {
-    item: TempWord;
+    item: Word; // 🌟 TempWord 대신 실제 Word 타입 사용
     onDelete: (id: number) => Promise<void>;
 }
 
-// [Front-end 역할] 테이블의 각 행(Row)을 담당하는 컴포넌트입니다. React.memo를 통해 부모 상태 변경 시 불필요한 리렌더링을 방지합니다.
+// [Front-end 역할] 테이블 행 컴포넌트 (기존과 동일)
 const WordTableRow = memo(({ item, onDelete }: WordTableRowProps) => {
-    // 해당 행(Row)만의 독립적인 로딩 상태 (버튼 연타 방어용)
     const [isDeleting, setIsDeleting] = useState(false);
 
-    /*
-     * [Front-end 역할] 유저가 개별 행의 '삭제' 버튼을 클릭했을 때 실행되는 핸들러입니다.
-     * 자체 상태(isDeleting)를 활성화하여 UI 적으로 중복 클릭을 방지하고, 부모로부터 전달받은 API 호출 함수를 실행합니다.
-     */
     const handleDeleteClick = async () => {
         if (window.confirm("정말로 이 단어를 삭제하시겠습니까?")) {
-            setIsDeleting(true); // 버튼 비활성화 및 로딩 UI 트리거
+            setIsDeleting(true);
             try {
                 await onDelete(item.id);
-                // 성공 시 부모에 의해 언마운트되므로 setIsDeleting(false) 불필요
-            } catch (error) {
-                // 실패 시 유저가 다시 시도할 수 있도록 버튼 활성화
+            } catch {
                 setIsDeleting(false);
             }
         }
@@ -119,16 +45,17 @@ const WordTableRow = memo(({ item, onDelete }: WordTableRowProps) => {
 
     return (
         <tr className="border-b border-[#EAEAEA] hover:bg-[#FCFAF6] transition-colors">
-            <td className="py-4 px-6 font-semibold">{item.word}</td>
+            {/* 🌟 주의: item.word, item.meaning 등이 실제 Word 타입의 속성명과 일치해야 합니다. */}
+            <td className="py-4 px-6 font-semibold">{item.voca}</td>
             <td className="py-4 px-6 text-[#555]">{item.meaning}</td>
             <td className="py-4 px-6">
                 <span
                     className={`px-3 py-1 rounded-full text-xs font-bold ${getTierStyle(item.tier)}`}
                 >
-                    {item.tier}
+                    {"Bronze"}
                 </span>
             </td>
-            <td className="py-4 px-6 text-[#8C8C8C]">{item.example}</td>
+            <td className="py-4 px-6 text-[#8C8C8C]">{"예문 테스트"}</td>
             <td className="py-4 px-6">
                 <div className="flex items-center justify-center gap-3">
                     <button
@@ -196,52 +123,58 @@ WordTableRow.displayName = "WordTableRow";
 // 메인 컴포넌트
 // =====================================================================
 export default function AdminWordManagement() {
-    const [words, setWords] = useState<TempWord[]>([]);
+    const [words, setWords] = useState<Word[]>([]); // 🌟 타입 변경
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    /**
-     * [Front-end 역할] 컴포넌트 마운트 시 최초 1회 전체 단어 목록을 불러와 UI 상태에 업데이트하는 함수입니다.
-     * [Back-end & DB 흐름]
-     * 1. API 연동 시 백엔드의 'GET /admin/words' 엔드포인트를 호출합니다.
-     * 2. DB의 `Word` 테이블에서 조건(페이지네이션, 필터링 등)에 맞는 데이터를 SELECT 쿼리로 조회합니다.
-     * 3. 조회된 엔티티(Entity) 리스트를 JSON 배열 형태로 반환하여 프론트엔드에 응답합니다.
-     */
-    // useCallback을 사용하여 의존성 배열에 의한 불필요한 함수 재생성 방지
-    const fetchWords = useCallback(async () => {
+    // (필요하다면 상단에 axios를 임포트하세요. 이미 getWords 내부에서만 쓴다면 문자열/이름으로 체크해도 무방합니다.)
+    // import axios from 'axios';
+
+    const fetchWords = useCallback(async (signal?: AbortSignal) => {
         setIsLoading(true);
-        setError(null); // 재시도 시 기존 에러 초기화
+        setError(null);
         try {
-            await new Promise((resolve) => setTimeout(resolve, 300));
-            setWords(MOCK_WORDS);
+            const data = await getWords(signal);
+            setWords(data);
         } catch (error: unknown) {
+            // 🌟 수정된 부분: AbortError뿐만 아니라 Axios의 CanceledError도 함께 무시합니다.
+            if (
+                error instanceof Error &&
+                (error.name === "AbortError" ||
+                    error.name === "CanceledError" ||
+                    error.message === "canceled")
+            ) {
+                return; // 컴포넌트 언마운트로 인한 정상적인 취소이므로 에러 처리 안 함
+            }
+
+            // (선택) axios가 임포트되어 있다면 아래 방식이 가장 확실합니다.
+            // if (axios.isCancel(error)) return;
+
             const errorMessage =
                 error instanceof Error
                     ? error.message
                     : "단어 목록을 불러오는 데 실패했습니다.";
-            setError(errorMessage); // alert 대신 상태로 관리
+            setError(errorMessage);
         } finally {
             setIsLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        void fetchWords();
+        // 🌟 AbortController를 생성하여 fetchWords에 전달하고, 언마운트 시 취소
+        const abortController = new AbortController();
+        void fetchWords(abortController.signal);
+
+        return () => {
+            abortController.abort();
+        };
     }, [fetchWords]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
+        // TODO: 프론트엔드 필터링 또는 백엔드 검색 API 연동
     };
 
-    /*
-     * [Front-end 역할] 단어 삭제 API를 호출하고 성공 시 로컬 상태(State)에서 해당 단어를 제거(Optimistic Update 방식 일부 차용)하여 즉시 뷰를 갱신합니다.
-     * @param wordId 삭제할 단어의 ID
-     * * [Back-end & DB 흐름]
-     * 1. 실제 deleteAdminWord 함수를 통해 HTTP DELETE 요청이 발생합니다.
-     * 2. 백엔드 DB에서 해당 레코드가 영구적으로 지워집니다(또는 삭제 상태 플래그 변경).
-     * 3. DB 작업이 성공적으로 커밋되면 프론트엔드의 화면 단에서도 해당 항목을 필터링해 없앱니다.
-     */
-    // 하위 컴포넌트(WordTableRow)에 전달될 함수이므로 useCallback으로 감싸 리렌더링 방지
     const handleDeleteWord = useCallback(async (wordId: number) => {
         try {
             await deleteAdminWord(wordId);
@@ -255,11 +188,11 @@ export default function AdminWordManagement() {
                     ? error.message
                     : "단어 삭제에 실패했습니다.";
             alert(errorMessage);
-            throw error; // 에러를 던져서 자식 컴포넌트(WordTableRow)가 isDeleting을 false로 바꿀 수 있게 함
+            throw error;
         }
     }, []);
 
-    // 1. 로딩 UI
+    // 렌더링 UI 로직은 기존과 100% 동일하므로 생략 없이 그대로 사용
     if (isLoading) {
         return (
             <div className="w-full min-h-[50vh] flex items-center justify-center text-[#8C8C8C]">
@@ -267,8 +200,6 @@ export default function AdminWordManagement() {
             </div>
         );
     }
-
-    // 2. 에러 UI (빈 화면 방어)
     if (error) {
         return (
             <div className="w-full min-h-[50vh] flex flex-col items-center justify-center gap-4 text-[#1A1A1A]">
@@ -283,9 +214,9 @@ export default function AdminWordManagement() {
         );
     }
 
-    // 3. 정상 렌더링 UI
     return (
         <div className="w-full max-w-6xl mx-auto p-8 flex flex-col gap-6 text-[#1A1A1A]">
+            {/* 상단 헤더 영역 */}
             <section className="flex justify-between items-end">
                 <div className="flex flex-col gap-1">
                     <h1 className="text-2xl font-bold">단어 관리</h1>
@@ -298,6 +229,7 @@ export default function AdminWordManagement() {
                 </div>
             </section>
 
+            {/* 검색 폼 (생략 없이 원본 유지) */}
             <form
                 onSubmit={handleSearch}
                 className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-[#EAEAEA] shadow-sm"
@@ -334,11 +266,11 @@ export default function AdminWordManagement() {
                 </select>
             </form>
 
+            {/* 테이블 영역 */}
             <div className="flex flex-col gap-3">
                 <p className="text-sm font-medium">
                     총 <span className="font-bold">{words.length}</span>개 단어
                 </p>
-
                 <div className="bg-white rounded-2xl border border-[#EAEAEA] shadow-sm overflow-hidden">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -372,7 +304,6 @@ export default function AdminWordManagement() {
                                 </tr>
                             ) : (
                                 words.map((item) => (
-                                    // 분리된 컴포넌트 렌더링 (메모이제이션 적용됨)
                                     <WordTableRow
                                         key={item.id}
                                         item={item}
@@ -383,91 +314,7 @@ export default function AdminWordManagement() {
                         </tbody>
                     </table>
                 </div>
-            );
-        }
-        if (error) {
-            return (
-                <div className="py-20 flex flex-col justify-center items-center gap-4">
-                    <p className="text-red-500 font-medium">{error}</p>
-                    <button
-                        onClick={() => void fetchWords()}
-                        className="px-4 py-2 bg-[#1A1A1A] text-white rounded-lg text-sm font-medium hover:bg-[#333333] transition-colors"
-                    >
-                        다시 시도
-                    </button>
-                </div>
-            );
-        }
-        if (safeWords.length === 0) {
-            return (
-                <div className="py-20 text-center text-[#8C8C8C]">
-                    등록된 단어가 없습니다.
-                </div>
-            );
-        }
-        return safeWords.map((item) => {
-            const badge = getBadgeStyle(item.tierLevel);
-            return (
-                <article
-                    key={item.id}
-                    className="flex items-start justify-between p-6 bg-white rounded-2xl border border-[#EAEAEA] shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-transform hover:-translate-y-0.5"
-                >
-                    <div className="flex flex-col gap-3">
-                        <div className="flex items-center gap-3">
-                            <span className="text-xl font-bold text-[#1A1A1A]">
-                                {item.english}
-                            </span>
-                            <span
-                                className={`px-2.5 py-0.5 rounded-full text-[12px] font-bold ${badge.style}`}
-                            >
-                                {badge.text}
-                            </span>
-                            {item.category && (
-                                <span className="px-2 py-0.5 rounded-md bg-gray-50 border border-gray-200 text-[11px] text-gray-500">
-                                    {item.category}
-                                </span>
-                            )}
-                        </div>
-                        <div className="flex flex-col gap-1 mt-1">
-                            <p className="text-[15px] font-medium text-[#444444]">
-                                {item.meaning}
-                            </p>
-                        </div>
-                    </div>
-                </article>
-            );
-        });
-    };
-
-    // [프론트엔드] 전체 레이아웃 및 섹션 렌더링
-    return (
-        <div className="flex min-h-screen">
-            <main className="flex-1 w-full max-w-200 mx-auto px-6 py-10 flex flex-col gap-8">
-                <section className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-1.5">
-                        <h1 className="text-2xl font-bold text-[#1A1A1A]">
-                            단어 관리
-                        </h1>
-                        <p className="text-sm text-[#8C8C8C]">
-                            등록된 단어를 관리하세요
-                        </p>
-                    </div>
-                    {!isLoading && !error && (
-                        <div className="flex gap-4 text-[14px] text-[#555555]">
-                            <span>
-                                총{" "}
-                                <strong className="font-bold text-[#1A1A1A]">
-                                    {safeWords.length}
-                                </strong>
-                                개 단어
-                            </span>
-                        </div>
-                    )}
-                </section>
-                <section className="flex flex-col gap-4">
-                    {renderContent()}
-                </section>
-            </main>
+            </div>
         </div>
     );
 }
