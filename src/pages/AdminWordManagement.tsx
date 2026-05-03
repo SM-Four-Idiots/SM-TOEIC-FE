@@ -83,7 +83,10 @@ const getTierStyle = (tier: string) => {
         case "Diamond":
             return "bg-[#E0F7FA] text-[#00ACC1]";
         default:
-            return "bg-gray-100 text-gray-600";
+            return {
+                text: `Tier ${tierLevel}`,
+                style: "bg-gray-100 text-gray-600",
+            };
     }
 };
 
@@ -380,7 +383,91 @@ export default function AdminWordManagement() {
                         </tbody>
                     </table>
                 </div>
-            </div>
+            );
+        }
+        if (error) {
+            return (
+                <div className="py-20 flex flex-col justify-center items-center gap-4">
+                    <p className="text-red-500 font-medium">{error}</p>
+                    <button
+                        onClick={() => void fetchWords()}
+                        className="px-4 py-2 bg-[#1A1A1A] text-white rounded-lg text-sm font-medium hover:bg-[#333333] transition-colors"
+                    >
+                        다시 시도
+                    </button>
+                </div>
+            );
+        }
+        if (safeWords.length === 0) {
+            return (
+                <div className="py-20 text-center text-[#8C8C8C]">
+                    등록된 단어가 없습니다.
+                </div>
+            );
+        }
+        return safeWords.map((item) => {
+            const badge = getBadgeStyle(item.tierLevel);
+            return (
+                <article
+                    key={item.id}
+                    className="flex items-start justify-between p-6 bg-white rounded-2xl border border-[#EAEAEA] shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-transform hover:-translate-y-0.5"
+                >
+                    <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-3">
+                            <span className="text-xl font-bold text-[#1A1A1A]">
+                                {item.english}
+                            </span>
+                            <span
+                                className={`px-2.5 py-0.5 rounded-full text-[12px] font-bold ${badge.style}`}
+                            >
+                                {badge.text}
+                            </span>
+                            {item.category && (
+                                <span className="px-2 py-0.5 rounded-md bg-gray-50 border border-gray-200 text-[11px] text-gray-500">
+                                    {item.category}
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex flex-col gap-1 mt-1">
+                            <p className="text-[15px] font-medium text-[#444444]">
+                                {item.meaning}
+                            </p>
+                        </div>
+                    </div>
+                </article>
+            );
+        });
+    };
+
+    // [프론트엔드] 전체 레이아웃 및 섹션 렌더링
+    return (
+        <div className="flex min-h-screen">
+            <main className="flex-1 w-full max-w-200 mx-auto px-6 py-10 flex flex-col gap-8">
+                <section className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-1.5">
+                        <h1 className="text-2xl font-bold text-[#1A1A1A]">
+                            단어 관리
+                        </h1>
+                        <p className="text-sm text-[#8C8C8C]">
+                            등록된 단어를 관리하세요
+                        </p>
+                    </div>
+                    {!isLoading && !error && (
+                        <div className="flex gap-4 text-[14px] text-[#555555]">
+                            <span>
+                                총{" "}
+                                <strong className="font-bold text-[#1A1A1A]">
+                                    {safeWords.length}
+                                </strong>
+                                개 단어
+                            </span>
+                        </div>
+                    )}
+                </section>
+                <section className="flex flex-col gap-4">
+                    {renderContent()}
+                </section>
+            </main>
         </div>
     );
 }

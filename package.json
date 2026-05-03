@@ -1,12 +1,20 @@
 {
-    "name": "toest",
-    "description": "TOEST 토익 단어 암기 서비스 입니다.",
-    "author": {
-        "name": "전병훈, 전민형, 장민수, 허준범"
-    },
-    "private": true,
+    "name": "dev",
     "version": "0.0.0",
+    "private": true,
+    "description": "TOEST 토익 단어 암기 서비스 입니다.",
+    "homepage": "https://github.com/SM-Four-Idiots/SM-TOEIC-FE#readme",
+    "bugs": {
+        "url": "https://github.com/SM-Four-Idiots/SM-TOEIC-FE/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/SM-Four-Idiots/SM-TOEIC-FE.git"
+    },
+    "license": "ISC",
+    "author": "전병훈, 전민형, 장민수, 허준범",
     "type": "module",
+    "main": "eslint.config.js",
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
