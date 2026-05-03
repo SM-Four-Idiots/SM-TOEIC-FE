@@ -3,7 +3,7 @@ import type { Word } from "@/types/word";
 
 // 관리자 단어 목록 조회 API
 export const getAdminWords = async (signal?: AbortSignal): Promise<Word[]> => {
-    const response = await axiosInstance.get<Word[]>("/admin/words", {
+    const response = await axiosInstance.get<Word[]>("/words", {
         signal,
     });
     if (!Array.isArray(response.data)) {

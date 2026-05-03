@@ -7,7 +7,6 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { getAdminWords } from "@/api/admin";
 import type { Word } from "@/types/word";
-import AdminSidebar from "@/components/layout/AdminSidebar";
 
 /**
  * [프론트엔드] 난이도 뱃지 스타일 반환 함수
@@ -41,7 +40,7 @@ export default function AdminWordManagement() {
      * [프론트엔드] 관리자 단어 목록 비동기 조회 함수
      * - signal: AbortController의 signal 객체 (컴포넌트 언마운트 시 네트워크 요청 취소)
      * - getAdminWords()로 API 호출, 성공 시 setWords로 상태 갱신
-     * - (백엔드/DB) '/admin/words' API는 DB에서 단어 전체를 조회해 JSON 배열로 응답
+     * - (백엔드/DB) '/words' API는 DB에서 단어 전체를 조회해 JSON 배열로 응답
      * - 에러/타임아웃/취소 등 모든 예외 상황을 안전하게 처리
      */
     const fetchWords = useCallback(async (signal?: AbortSignal) => {
@@ -157,7 +156,6 @@ export default function AdminWordManagement() {
     // [프론트엔드] 전체 레이아웃 및 섹션 렌더링
     return (
         <div className="flex min-h-screen">
-            <AdminSidebar />
             <main className="flex-1 w-full max-w-200 mx-auto px-6 py-10 flex flex-col gap-8">
                 <section className="flex flex-col gap-6">
                     <div className="flex flex-col gap-1.5">
