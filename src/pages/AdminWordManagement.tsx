@@ -6,6 +6,8 @@ import { deleteAdminWord } from "@/api/admin";
 // 🌟 추가된 API 및 타입 임포트 (경로는 실제 구조에 맞게 조정해 주세요)
 import { getWords } from "@/api/wordApi";
 import type { Word } from "@/types/word";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { openModal, resetChangeSuccess } from "@/store/modalSlice";
 
 // 티어별 뱃지 스타일 헬퍼 (기존과 동일)
 const getTierStyle = (tier: string) => {
@@ -24,12 +26,13 @@ const getTierStyle = (tier: string) => {
 };
 
 interface WordTableRowProps {
-    item: Word; // 🌟 TempWord 대신 실제 Word 타입 사용
+    item: Word;
     onDelete: (id: number) => Promise<void>;
+    onEdit: (word: Word) => void; // 🌟 수정 핸들러 타입 추가
 }
 
 // [Front-end 역할] 테이블 행 컴포넌트 (기존과 동일)
-const WordTableRow = memo(({ item, onDelete }: WordTableRowProps) => {
+const WordTableRow = memo(({ item, onDelete, onEdit }: WordTableRowProps) => {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDeleteClick = async () => {
@@ -52,7 +55,7 @@ const WordTableRow = memo(({ item, onDelete }: WordTableRowProps) => {
                 <span
                     className={`px-3 py-1 rounded-full text-xs font-bold ${getTierStyle(item.tier)}`}
                 >
-                    {"Bronze"}
+                    {item.tier}
                 </span>
             </td>
             <td className="py-4 px-6 text-[#8C8C8C]">{"예문 테스트"}</td>
@@ -63,7 +66,9 @@ const WordTableRow = memo(({ item, onDelete }: WordTableRowProps) => {
                         className="text-[#8C8C8C] hover:text-[#1A1A1A] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         disabled={isDeleting}
                         aria-label="수정"
+                        onClick={() => onEdit(item)}
                     >
+                        {/* 기존 svg 아이콘 */}
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="24"
@@ -119,16 +124,29 @@ const WordTableRow = memo(({ item, onDelete }: WordTableRowProps) => {
 });
 WordTableRow.displayName = "WordTableRow";
 
-// =====================================================================
-// 메인 컴포넌트
-// =====================================================================
 export default function AdminWordManagement() {
+    const dispatch = useAppDispatch();
     const [words, setWords] = useState<Word[]>([]); // 🌟 타입 변경
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    // 🌟 모달에서 성공 처리가 되었는지 감지하기 위한 state
+    const { isChangeCompleted } = useAppSelector((state) => state.modal);
+
     // (필요하다면 상단에 axios를 임포트하세요. 이미 getWords 내부에서만 쓴다면 문자열/이름으로 체크해도 무방합니다.)
     // import axios from 'axios';
+
+    // 🌟 추가 모달 오픈 핸들러
+    const handleCreateWord = useCallback(() => {
+        dispatch(openModal({ modalType: "createWordModal" }));
+    }, [dispatch]);
+
+    const handleEditWord = useCallback(
+        (word: Word) => {
+            dispatch(openModal({ modalType: "changeWordModal", word }));
+        },
+        [dispatch]
+    );
 
     const fetchWords = useCallback(async (signal?: AbortSignal) => {
         setIsLoading(true);
@@ -161,7 +179,6 @@ export default function AdminWordManagement() {
     }, []);
 
     useEffect(() => {
-        // 🌟 AbortController를 생성하여 fetchWords에 전달하고, 언마운트 시 취소
         const abortController = new AbortController();
         void fetchWords(abortController.signal);
 
@@ -169,6 +186,16 @@ export default function AdminWordManagement() {
             abortController.abort();
         };
     }, [fetchWords]);
+
+    // 🌟 추가/수정 성공 시 자동으로 목록 새로고침 로직
+    useEffect(() => {
+        if (isChangeCompleted) {
+            const abortController = new AbortController();
+            void fetchWords(abortController.signal);
+            // 패치가 끝나면 다시 false로 초기화해주어야 다음 생성/수정 때도 감지됩니다.
+            dispatch(resetChangeSuccess());
+        }
+    }, [isChangeCompleted, fetchWords, dispatch]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -225,7 +252,11 @@ export default function AdminWordManagement() {
                     </p>
                 </div>
                 <div className="w-32">
-                    <FormButton text="+ 단어 추가" />
+                    <FormButton
+                        text="+ 단어 추가"
+                        type="button"
+                        onClick={handleCreateWord}
+                    />
                 </div>
             </section>
 
@@ -308,6 +339,7 @@ export default function AdminWordManagement() {
                                         key={item.id}
                                         item={item}
                                         onDelete={handleDeleteWord}
+                                        onEdit={handleEditWord} // 🌟 props로 onEdit 전달
                                     />
                                 ))
                             )}

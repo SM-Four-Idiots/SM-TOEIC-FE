@@ -35,3 +35,67 @@ export const deleteAdminWord = async (wordId: number): Promise<void> => {
         );
     }
 };
+
+// [추가] 단어 수정 요청에 사용할 데이터 타입 정의
+export interface UpdateWordRequest {
+    voca: string;
+    meaning: string;
+    tier: string;
+}
+
+/*
+ * 어드민 단어 수정 API 호출 함수
+ * @param wordId 수정할 단어의 고유 ID
+ * @param data 수정할 단어의 정보 (voca, meaning, tier)
+ * @returns Promise<void>
+ */
+export const updateAdminWord = async (
+    wordId: number,
+    data: UpdateWordRequest
+): Promise<void> => {
+    try {
+        // 이미 axiosInstance의 baseURL에 /api가 포함되어 있으므로 /admin/words/${wordId} 로 요청합니다.
+        await axiosInstance.put(`/admin/words/${wordId}`, data);
+    } catch (error) {
+        if (isAxiosError<ErrorResponse>(error)) {
+            const errorMessage =
+                error.response?.data?.message ||
+                "서버와 통신 중 문제가 발생했습니다.";
+            throw new Error(errorMessage);
+        }
+        throw new Error(
+            "네트워크 오류가 발생했습니다. 연결 상태를 확인해주세요."
+        );
+    }
+};
+
+// [추가] 단어 생성 요청에 사용할 데이터 타입 정의
+export interface CreateWordRequest {
+    voca: string;
+    meaning: string;
+    category: string;
+    tier: string;
+}
+
+/*
+ * 어드민 단어 추가 API 호출 함수
+ * @param data 추가할 단어의 정보 (voca, meaning, category, tier)
+ * @returns Promise<void>
+ */
+export const createAdminWord = async (
+    data: CreateWordRequest
+): Promise<void> => {
+    try {
+        await axiosInstance.post("/admin/words", data);
+    } catch (error) {
+        if (isAxiosError<ErrorResponse>(error)) {
+            const errorMessage =
+                error.response?.data?.message ||
+                "서버와 통신 중 문제가 발생했습니다.";
+            throw new Error(errorMessage);
+        }
+        throw new Error(
+            "네트워크 오류가 발생했습니다. 연결 상태를 확인해주세요."
+        );
+    }
+};

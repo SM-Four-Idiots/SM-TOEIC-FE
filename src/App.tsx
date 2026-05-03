@@ -13,6 +13,7 @@ import {
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import type { RefreshResult } from "./types/member";
 import { fetchUser } from "./utils/auth";
+import ModalLayout from "./components/modal/ModalLayout";
 
 function App() {
     const location = useLocation();
@@ -97,6 +98,7 @@ function App() {
                 <main className="flex flex-col flex-1 h-screen p-8 overflow-y-auto">
                     <Outlet />
                 </main>
+                <ModalLayout />
             </div>
         );
     }
@@ -108,6 +110,7 @@ function App() {
             <main className="flex flex-col h-[90vh]">
                 <Outlet />
             </main>
+            <ModalLayout />
         </div>
     );
 }
