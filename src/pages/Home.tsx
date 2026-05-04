@@ -5,20 +5,24 @@ import { useNavigate } from "react-router-dom";
 
 export default function Home() {
     const user = useAppSelector((state) => state.authState.user);
+    // ⭐️ App.tsx에서 만든 부팅 완료 상태를 여기서도 불러옵니다.
+    const authInitialized = useAppSelector(
+        (state) => state.authState.authInitialized
+    );
 
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!user) {
+        // ⭐️ "부팅이 완전히 끝났는데도" 유저가 없다면 그때 쫓아냅니다.
+        if (authInitialized && !user) {
             void navigate("/login", { replace: true });
         }
-    });
+    }, [user, authInitialized, navigate]); // 의존성 배열에 추가해주는 것이 좋습니다.
 
-    // 깜빡임 방지
-    if (!user) {
-        return null;
+    // ⭐️ 깜빡임 방지 로직 수정: 부팅 중이거나 유저 정보가 없으면 아무것도 안 그림(또는 로딩 스피너)
+    if (!authInitialized || !user) {
+        return null; // 여기에 <LoadingSpinner /> 같은 컴포넌트를 넣으시면 더 좋습니다!
     }
-
     return (
         <div className="w-full max-w-300 mx-auto px-8 flex flex-col gap-6 mt-8">
             {/* 1. 메인 상단 (인사말 & 연속 출석) */}
