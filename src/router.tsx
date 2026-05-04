@@ -26,9 +26,10 @@ import AdminWordManagement from "./pages/AdminWordManagement";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import MyPage from "./pages/MyPage";
+import Promotion from "./pages/Promotion";
+import PromotionTest from "./pages/PromotionTest";
 import Signup from "./pages/Signup";
 import Words from "./pages/Words";
-import RankUpTestMain from "./pages/RankUpTestMain";
 
 // 라우트 정의
 export const router = createBrowserRouter([
@@ -63,8 +64,22 @@ export const router = createBrowserRouter([
                 element: <Words />,
             },
             {
-                path: "rankup",
-                element: <RankUpTestMain />,
+                path: "promotion",
+                element: (
+                    <ProtectedRoute>
+                        <Outlet />
+                    </ProtectedRoute>
+                ),
+                children: [
+                    {
+                        index: true,
+                        element: <Promotion />,
+                    },
+                    {
+                        path: "test",
+                        element: <PromotionTest />,
+                    },
+                ],
             },
 
             // 관리자 페이지

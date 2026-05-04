@@ -1,15 +1,14 @@
 import LinkButton from "@/components/common/button/LinkButton";
 
-export default function RankUpTestMain() {
+export default function Promotion() {
     return (
         // 전체 컨테이너: 너비 제한 및 가운데 정렬
         <div className="w-full max-w-[480px] mx-auto px-6 flex flex-col items-center gap-6 mt-12">
             {/* 1. 상단 타이틀 영역 */}
             <section className="flex flex-col items-center gap-1">
                 <h1 className="text-2xl font-bold text-gray-900">
-                    승급 테스트
+                    단어 테스트
                 </h1>
-                <p className="text-gray-500 font-medium">Silver 티어 도전</p>
             </section>
 
             {/* 2. 메인 카드 영역 (흰색 배경, 그림자, 둥근 모서리) */}
@@ -43,7 +42,7 @@ export default function RankUpTestMain() {
                         테스트 안내
                     </h2>
                     <p className="text-sm text-gray-500">
-                        한글 뜻을 보고 영문 철자를 입력하세요
+                        한글 뜻 혹은 영문 철자를 입력하세요
                     </p>
                 </div>
 
@@ -54,7 +53,7 @@ export default function RankUpTestMain() {
                             문제 수
                         </span>
                         <span className="font-semibold text-gray-900 text-sm">
-                            5문제
+                            30문제
                         </span>
                     </div>
                     <div className="flex justify-between items-center py-4 border-b border-gray-100">
@@ -62,7 +61,7 @@ export default function RankUpTestMain() {
                             통과 기준
                         </span>
                         <span className="font-semibold text-gray-900 text-sm">
-                            70% 이상 (4문제)
+                            70% 이상 (21문제)
                         </span>
                     </div>
                     <div className="flex justify-between items-center py-4">
@@ -78,7 +77,7 @@ export default function RankUpTestMain() {
                 {/* 버튼 (LinkButton의 variant 기본값이 'main' 이므로 바로 사용) */}
                 <LinkButton
                     text="테스트 시작"
-                    url="/"
+                    url="/promotion/test"
                     className="py-3.5 text-[15px]" // 버튼을 조금 더 도톰하게 만들어주기 위해 패딩 추가
                 />
             </section>
