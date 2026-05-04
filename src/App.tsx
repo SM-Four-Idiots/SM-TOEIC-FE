@@ -4,6 +4,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import axiosInstance from "./api/axiosInstance";
 import AdminSidebar from "./components/layout/AdminSidebar"; // AdminSidebar 경로를 실제 위치에 맞게 수정해주세요.
 import Header from "./components/layout/Header";
+import ModalLayout from "./components/modal/ModalLayout";
 import {
     login,
     logout,
@@ -40,7 +41,7 @@ function App() {
                 /* AT 재발급 부분입니다. */
                 // Authorization 헤더 없이, RT 쿠키만으로 accessToken 발급
                 const reissueRes =
-                    await axiosInstance.post<RefreshResult>("/auth/reissue");
+                    await axiosInstance.post<RefreshResult>("/auth/refresh");
                 if (!reissueRes.data) {
                     console.warn("AT 재발급 실패", reissueRes.data);
                     return;
@@ -97,6 +98,7 @@ function App() {
                 <main className="flex flex-col flex-1 h-screen p-8 overflow-y-auto">
                     <Outlet />
                 </main>
+                <ModalLayout />
             </div>
         );
     }
@@ -108,6 +110,7 @@ function App() {
             <main className="flex flex-col h-[90vh]">
                 <Outlet />
             </main>
+            <ModalLayout />
         </div>
     );
 }

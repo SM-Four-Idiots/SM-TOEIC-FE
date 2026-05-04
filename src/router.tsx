@@ -26,8 +26,11 @@ import AdminWordManagement from "./pages/AdminWordManagement";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import MyPage from "./pages/MyPage";
+import Promotion from "./pages/Promotion";
+import PromotionTest from "./pages/PromotionTest";
 import Signup from "./pages/Signup";
 import Words from "./pages/Words";
+import PromotionSummary from "./pages/PromotionSummary";
 
 // 라우트 정의
 export const router = createBrowserRouter([
@@ -60,6 +63,38 @@ export const router = createBrowserRouter([
             {
                 path: "words",
                 element: <Words />,
+            },
+            {
+                path: "promotion",
+                element: (
+                    <ProtectedRoute>
+                        <Outlet />
+                    </ProtectedRoute>
+                ),
+                children: [
+                    {
+                        index: true,
+                        element: <Promotion />,
+                    },
+                    {
+                        path: "test",
+                        element: (
+                            <ProtectedRoute>
+                                <Outlet />
+                            </ProtectedRoute>
+                        ),
+                        children: [
+                            {
+                                index: true,
+                                element: <PromotionTest />,
+                            },
+                            {
+                                path: "summary",
+                                element: <PromotionSummary />,
+                            },
+                        ],
+                    },
+                ],
             },
 
             // 관리자 페이지
