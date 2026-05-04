@@ -12,12 +12,14 @@ import { configureStore } from "@reduxjs/toolkit";
 
 import authReducer from "./authSlice";
 import modalReducer from "./modalSlice";
+import testReducer from "./testSlice"; // 🌟 추가
 
 export const store = configureStore({
     // reducer 객체에 slice들을 추가
     reducer: {
         modal: modalReducer,
         authState: authReducer,
+        test: testReducer, // 🌟 추가
         // 다른 slice가 있다면 추가
     },
 });
