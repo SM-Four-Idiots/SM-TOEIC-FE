@@ -5,8 +5,8 @@
  * instance의 주요 기능은 다음과 같습니다.
  * - BaseURL 및 타임아웃 등 공통 Axios 설정 관리
  * - 요청 인터셉터를 통해 accessToken 관리 Redux Store에서 Access Token을 추출하여 Authorization 헤더에 자동 첨부
- * - 응답 인터셉터: 401(Unauthorized) 에러 발생 시 토큰 재발급(Reissue) 로직 수행
- * - 동시성 제어: 여러 API가 동시에 401을 반환할 경우, reissue 요청이 중복되지 않도록 Promise 락킹 메커니즘 적용
+ * - 응답 인터셉터: 401(Unauthorized) 에러 발생 시 토큰 재발급(refresh) 로직 수행
+ * - 동시성 제어: 여러 API가 동시에 401을 반환할 경우, refresh 요청이 중복되지 않도록 Promise 락킹 메커니즘 적용
  * - 인증 예외 처리: 로그인, 회원가입 등 특정 엔드포인트는 인증 헤더 첨부 및 재발급 로직에서 제외
  *
  * 요청 인터셉터는 다음과 같이 작동합니다.
@@ -21,13 +21,13 @@
  * - 만약 axios 에러일 시, 실패한 요청의 originalRequest 속 config 추출한 후, _retry를 boolean 형으로 삽입합니다.
  * - 단, originalRequest가 없으면 일반 에러로 처리하고 종료합니다.
  * - originalRequest가 존재할 경우, status와 url을 추출한 후,
- * - 예외 url이 아닌 경우, reissue를 진행합니다.
+ * - 예외 url이 아닌 경우, refresh를 진행합니다.
  *
- * reissue는 다음과 같이 진행됩니다.
- * - 이미 reissue 진행 중이면 그 Promise를 기다립니다.
- * - refreshPromise가 진행되면, 백엔드 서버에 reissue를 요청을 하며,
+ * refresh는 다음과 같이 진행됩니다.
+ * - 이미 refresh 진행 중이면 그 Promise를 기다립니다.
+ * - refreshPromise가 진행되면, 백엔드 서버에 refresh를 요청을 하며,
  * - 토큰을 재발급 받고, newAccessToken을 할당받습니다.
- * - 그리고 이를 redux store에 저장해 토큰을 갱신하며 reissue를 종료합니다.
+ * - 그리고 이를 redux store에 저장해 토큰을 갱신하며 refresh를 종료합니다.
  */
 
 import { logout, setAccessToken } from "@/store/authSlice";
@@ -35,31 +35,31 @@ import { store } from "@/store/store";
 import type { RefreshResult } from "@/types/member";
 import axios, { type InternalAxiosRequestConfig } from "axios";
 
-type ReissueResponse = RefreshResult;
+type refreshResponse = RefreshResult;
 
 // 인증 관련 예외 URL 목록을 상단에 배열로 분리
 // 또한, 읽기 전용 상수로 선언해 변경 불가하게 함
 // 즉, 토큰 첨부를 생략할 API 목록
 const NO_TOKEN_PATHS = [
     "/auth/login",
-    "/auth/reissue",
+    "/auth/refresh",
     "/auth/signup",
 ] as const;
 
 // 단, logout의 경우 좀비세션을 막기 위해 분리
-// 401 에러 시 재발급(reissue) 로직을 타지 않을 API 목록
-const NO_REISSUE_PATHS = [
+// 401 에러 시 재발급(refresh) 로직을 타지 않을 API 목록
+const NO_refresh_PATHS = [
     ...NO_TOKEN_PATHS,
     "/auth/logout", // 로그아웃 중 401이 뜨면 굳이 재발급하지 않고 쿨하게 프론트 단만 초기화
 ] as const;
 
 const axiosInstance = axios.create({
-    baseURL: `${import.meta.env.VITE_API_URL}/api`,
+    baseURL: `/api`,
     withCredentials: true, // 쿠키 전송
     timeout: 10000, // 10초 넘어가면 timeouts
 });
 
-// reissue를 1번만 실행하고 나머지는 기다리게 함(401 동시 발생 방지용)
+// refresh를 1번만 실행하고 나머지는 기다리게 함(401 동시 발생 방지용)
 let refreshPromise: Promise<string> | null = null;
 
 // * 요청 인터셉터 *
@@ -110,27 +110,27 @@ axiosInstance.interceptors.response.use(
         const url = originalRequest.url ?? "";
 
         // * 인증 관련 end-point includes 설정 *
-        // - 인증 관련 end-point는 auth 및 reissue 로직을 타면 안 됨
+        // - 인증 관련 end-point는 auth 및 refresh 로직을 타면 안 됨
         // - login: 로그인 시도 자체는 accessToken 만료와 무관
-        // - reissue: reissue 요청에 reissue 로직은 무한루프
+        // - refresh: refresh 요청에 refresh 로직은 무한루프
         // - logout: 로그아웃은 세션 정리 과정
         // 배열의 some 메서드를 사용해 예외 URL과 매칭
-        const isNoReissueEndpoint = NO_REISSUE_PATHS.some((path) =>
+        const isNorefreshEndpoint = NO_refresh_PATHS.some((path) =>
             url.includes(path)
         );
 
-        // status가 401이고, 재시도 안 한 요청이며, login/reissue/logout이 아닌 경우
-        if (status === 401 && !originalRequest._retry && !isNoReissueEndpoint) {
+        // status가 401이고, 재시도 안 한 요청이며, login/refresh/logout이 아닌 경우
+        if (status === 401 && !originalRequest._retry && !isNorefreshEndpoint) {
             // _retry flag 설정
             originalRequest._retry = true;
 
             try {
-                // 이미 reissue 진행 중이면 그 Promise를 기다림
+                // 이미 refresh 진행 중이면 그 Promise를 기다림
                 if (!refreshPromise) {
                     refreshPromise = (async () => {
                         const response =
-                            await axiosInstance.post<ReissueResponse>(
-                                "/auth/reissue",
+                            await axiosInstance.post<refreshResponse>(
+                                "/auth/refresh",
                                 {}
                             );
 
@@ -157,14 +157,14 @@ axiosInstance.interceptors.response.use(
                 // originalRequest(config)로 요청 재실행
                 return axiosInstance(originalRequest);
             } catch (err) {
-                // * reissue 실패 시 *
+                // * refresh 실패 시 *
                 // - accessToken 초기화
                 // - 로그인 상태 초기화
                 store.dispatch(setAccessToken(null));
                 store.dispatch(logout());
 
                 // axios 에러인 경우 자세한 logging 출력
-                if (axios.isAxiosError<ReissueResponse>(err)) {
+                if (axios.isAxiosError<refreshResponse>(err)) {
                     console.warn(
                         "토큰 재발급 실패",
                         err.response?.data || err.message

@@ -11,7 +11,6 @@ export interface MemberResult {
 // 로그인 성공
 export interface LoginResult {
     accessToken: string;
-    refreshToken: string;
 }
 
 // 회원가입 결과
@@ -23,5 +22,4 @@ export type logoutResult = void;
 // 토큰 재발급
 export interface RefreshResult {
     accessToken: string;
-    refreshToken: string;
 }
