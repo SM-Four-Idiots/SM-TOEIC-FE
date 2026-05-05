@@ -40,8 +40,10 @@ function App() {
             try {
                 /* AT 재발급 부분입니다. */
                 // Authorization 헤더 없이, RT 쿠키만으로 accessToken 발급
-                const reissueRes =
-                    await axiosInstance.post<RefreshResult>("/auth/refresh");
+                const reissueRes = await axiosInstance.post<RefreshResult>(
+                    "/auth/refresh",
+                    {}
+                );
                 if (!reissueRes.data) {
                     console.warn("AT 재발급 실패", reissueRes.data);
                     return;
@@ -105,9 +107,12 @@ function App() {
 
     // 2. 일반 사용자(User) 레이아웃: 상단 헤더 + 하단 메인 콘텐츠
     return (
-        <div className="min-h-screen bg-[#FCFAF6]">
+        // 1. 부모 div에 flex flex-col을 추가하여 레이아웃이 유연하게 늘어날 수 있게 만듭니다.
+        <div className="flex flex-col min-h-screen bg-[#FCFAF6]">
             <Header />
-            <main className="flex flex-col h-[90vh]">
+            {/* 2. 문제의 h-[90vh]를 지우고 flex-1을 추가합니다. 
+               이제 main 영역은 Header를 제외한 나머지 영역을 꽉 채우며, 내용이 길어지면 자연스럽게 같이 늘어납니다. */}
+            <main className="flex flex-col flex-1">
                 <Outlet />
             </main>
             <ModalLayout />

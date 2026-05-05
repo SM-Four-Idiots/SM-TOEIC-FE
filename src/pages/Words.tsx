@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { getWords } from "@/api/wordApi";
 import type { Word } from "@/types/word";
+import { useAppSelector } from "@/store/hooks";
+import { useNavigate } from "react-router-dom";
 
 // [Front-end] 컴포넌트 내부 상태(State)에 의존하지 않는 순수 함수.
 // 파라미터(tierLevel): DB에서 응답받은 숫자 형태의 난이도 레벨.
@@ -24,6 +26,14 @@ const getTierStyle = (tier: string) => {
 };
 
 export default function Words() {
+    const user = useAppSelector((state) => state.authState.user);
+    // ⭐️ App.tsx에서 만든 부팅 완료 상태를 여기서도 불러옵니다.
+    const authInitialized = useAppSelector(
+        (state) => state.authState.authInitialized
+    );
+
+    const navigate = useNavigate();
+
     // [Front-end] 컴포넌트의 렌더링을 제어하는 상태 변수들.
     // words: 화면에 그려질 단어 목록 배열
     // isLoading: 데이터 통신 진행 여부 (로딩 스피너 제어)
@@ -96,6 +106,18 @@ export default function Words() {
             abortController.abort();
         };
     }, [fetchWords]);
+
+    useEffect(() => {
+        // ⭐️ "부팅이 완전히 끝났는데도" 유저가 없다면 그때 쫓아냅니다.
+        if (authInitialized && !user) {
+            void navigate("/login", { replace: true });
+        }
+    }, [user, authInitialized, navigate]); // 의존성 배열에 추가해주는 것이 좋습니다.
+
+    // ⭐️ 깜빡임 방지 로직 수정: 부팅 중이거나 유저 정보가 없으면 아무것도 안 그림(또는 로딩 스피너)
+    if (!authInitialized || !user) {
+        return null; // 여기에 <LoadingSpinner /> 같은 컴포넌트를 넣으시면 더 좋습니다!
+    }
 
     // [Front-end] 백엔드가 만약의 상황에 JSON 배열이 아닌 다른 타입을 내려주었을 때
     // .map() 함수 호출 시 발생하는 런타임 에러(화면 백지화)를 막기 위한 최종 방어선입니다.

@@ -35,8 +35,6 @@ import { store } from "@/store/store";
 import type { RefreshResult } from "@/types/member";
 import axios, { type InternalAxiosRequestConfig } from "axios";
 
-type refreshResponse = RefreshResult;
-
 // 인증 관련 예외 URL 목록을 상단에 배열로 분리
 // 또한, 읽기 전용 상수로 선언해 변경 불가하게 함
 // 즉, 토큰 첨부를 생략할 API 목록
@@ -54,7 +52,7 @@ const NO_refresh_PATHS = [
 ] as const;
 
 const axiosInstance = axios.create({
-    baseURL: `/api`,
+    baseURL: `${import.meta.env.VITE_API_URL}/api`,
     withCredentials: true, // 쿠키 전송
     timeout: 10000, // 10초 넘어가면 timeouts
 });
@@ -129,7 +127,7 @@ axiosInstance.interceptors.response.use(
                 if (!refreshPromise) {
                     refreshPromise = (async () => {
                         const response =
-                            await axiosInstance.post<refreshResponse>(
+                            await axiosInstance.post<RefreshResult>(
                                 "/auth/refresh",
                                 {}
                             );
@@ -164,7 +162,7 @@ axiosInstance.interceptors.response.use(
                 store.dispatch(logout());
 
                 // axios 에러인 경우 자세한 logging 출력
-                if (axios.isAxiosError<refreshResponse>(err)) {
+                if (axios.isAxiosError<RefreshResult>(err)) {
                     console.warn(
                         "토큰 재발급 실패",
                         err.response?.data || err.message
