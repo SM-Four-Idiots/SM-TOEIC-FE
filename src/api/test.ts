@@ -11,7 +11,7 @@ interface ErrorResponse {
 // ==========================================
 export interface Question {
     id: number;
-    type: number; // ex) 0: 한글 뜻 맞추기, 1: 영문 철자 맞추기 등
+    type: number; // ex) 1: 한글 뜻 맞추기, 0: 영문 철자 맞추기 등
     question: string;
 }
 
