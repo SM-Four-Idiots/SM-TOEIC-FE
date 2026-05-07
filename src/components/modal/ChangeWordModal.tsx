@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { closeModal, notifyChangeSuccess } from "@/store/modalSlice";
+import { updateAdminWord } from "@/api/admin";
 import FormButton from "@/components/common/button/FormButton";
 import FormInput from "@/components/common/input/FormInput";
-import { updateAdminWord } from "@/api/admin";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { closeModal, notifyChangeSuccess } from "@/store/modalSlice";
+import React, { useEffect, useState } from "react";
 
 export default function ChangeWordModal() {
     const dispatch = useAppDispatch();
@@ -63,7 +63,10 @@ export default function ChangeWordModal() {
             </div>
 
             {/* 🌟 onSubmit에 void 처리 추가하여 Promise 반환 에러 해결 */}
-            <form onSubmit={void handleSubmit} className="flex flex-col gap-4">
+            <form
+                onSubmit={(e) => void handleSubmit(e)}
+                className="flex flex-col gap-4"
+            >
                 <div className="flex flex-col gap-1">
                     {/* 🌟 htmlFor 추가 */}
                     <label

@@ -66,6 +66,10 @@ export default function Login() {
                     nickname: userRes.nickname,
                 })
             );
+            if (userRes.nickname === "Admin1234") {
+                void navigate("/admin");
+                return;
+            }
             // 원래 가려던 페이지로 복귀(없으면 "/"로)
             const from =
                 (location.state as { from?: Location })?.from?.pathname || "/";

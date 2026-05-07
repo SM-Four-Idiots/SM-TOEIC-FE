@@ -1,11 +1,11 @@
 // src/components/.../CreateWordModal.tsx
 
-import React, { useState } from "react";
-import { useAppDispatch } from "@/store/hooks";
-import { closeModal, notifyChangeSuccess } from "@/store/modalSlice";
+import { createAdminWord } from "@/api/admin";
 import FormButton from "@/components/common/button/FormButton";
 import FormInput from "@/components/common/input/FormInput";
-import { createAdminWord } from "@/api/admin";
+import { useAppDispatch } from "@/store/hooks";
+import { closeModal, notifyChangeSuccess } from "@/store/modalSlice";
+import React, { useState } from "react";
 
 export default function CreateWordModal() {
     const dispatch = useAppDispatch();
@@ -56,7 +56,10 @@ export default function CreateWordModal() {
                 </button>
             </div>
 
-            <form onSubmit={void handleSubmit} className="flex flex-col gap-4">
+            <form
+                onSubmit={(e) => void handleSubmit(e)}
+                className="flex flex-col gap-4"
+            >
                 <div className="flex flex-col gap-1">
                     <label
                         htmlFor="create-voca"

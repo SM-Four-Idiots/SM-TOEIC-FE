@@ -1,13 +1,13 @@
-import React, { useEffect, useState, useCallback, memo } from "react";
+import { deleteAdminWord } from "@/api/admin";
 import FormButton from "@/components/common/button/FormButton";
 import FormInput from "@/components/common/input/FormInput";
-import { deleteAdminWord } from "@/api/admin";
+import React, { memo, useCallback, useEffect, useState } from "react";
 
 // 🌟 추가된 API 및 타입 임포트 (경로는 실제 구조에 맞게 조정해 주세요)
 import { getWords } from "@/api/wordApi";
-import type { Word } from "@/types/word";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { openModal, resetChangeSuccess } from "@/store/modalSlice";
+import type { Word } from "@/types/word";
 
 // 티어별 뱃지 스타일 헬퍼 (기존과 동일)
 const getTierStyle = (tier: string) => {
