@@ -52,9 +52,10 @@ const NO_refresh_PATHS = [
 ] as const;
 
 const axiosInstance = axios.create({
-    baseURL: `${import.meta.env.VITE_API_URL}/api`,
-    withCredentials: true, // 쿠키 전송
-    timeout: 10000, // 10초 넘어가면 timeouts
+    // AS-IS: baseURL: `${import.meta.env.VITE_API_URL}/api`,
+    baseURL: "/api", // TO-BE: 환경변수 없이 그냥 /api로 고정!
+    withCredentials: true,
+    timeout: 10000,
 });
 
 // refresh를 1번만 실행하고 나머지는 기다리게 함(401 동시 발생 방지용)
