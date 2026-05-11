@@ -3,7 +3,7 @@ import LinkButton from "@/components/common/button/LinkButton";
 export default function Promotion() {
     return (
         // 전체 컨테이너: 너비 제한 및 가운데 정렬
-        <div className="w-full max-w-[480px] mx-auto px-6 flex flex-col items-center gap-6 mt-12">
+        <div className="w-full max-w-120 mx-auto px-6 flex flex-col items-center gap-6 mt-12">
             {/* 1. 상단 타이틀 영역 */}
             <section className="flex flex-col items-center gap-1">
                 <h1 className="text-2xl font-bold text-gray-900">

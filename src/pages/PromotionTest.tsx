@@ -101,7 +101,7 @@ export default function PromotionTest() {
         : "한글 뜻을 입력하세요";
 
     return (
-        <div className="w-full max-w-[520px] mx-auto px-4 flex flex-col gap-5 mt-20">
+        <div className="w-full max-w-130 mx-auto px-4 flex flex-col gap-5 mt-20">
             <section className="flex flex-col gap-2">
                 <div className="flex justify-between items-center text-sm font-bold text-[#1A1A1A] px-1">
                     <span>진행도</span>
@@ -147,10 +147,10 @@ export default function PromotionTest() {
                     <FormButton
                         text={isSubmitting ? "제출 중..." : "제출"}
                         variant="main"
-                        className={`h-11 !text-white transition-colors ${
+                        className={`h-11 text-white! transition-colors ${
                             !inputValue.trim() || isSubmitting
-                                ? "!bg-[#E6B89C] cursor-not-allowed"
-                                : "!bg-[#D67629] hover:!bg-[#BF6420]"
+                                ? "bg-[#E6B89C]! cursor-not-allowed"
+                                : "bg-[#D67629]! hover:bg-[#BF6420]!"
                         }`}
                         isLoading={!inputValue.trim() || isSubmitting}
                     />
