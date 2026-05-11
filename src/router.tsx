@@ -31,6 +31,7 @@ import PromotionTest from "./pages/PromotionTest";
 import Signup from "./pages/Signup";
 import Words from "./pages/Words";
 import PromotionSummary from "./pages/PromotionSummary";
+import Quest from "./pages/Quest";
 
 // 라우트 정의
 export const router = createBrowserRouter([
@@ -95,6 +96,10 @@ export const router = createBrowserRouter([
                         ],
                     },
                 ],
+            },
+            {
+                path: "quests",
+                element: <Quest />,
             },
 
             // 관리자 페이지
